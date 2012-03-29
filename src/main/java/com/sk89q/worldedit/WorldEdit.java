@@ -199,6 +199,7 @@ public class WorldEdit {
         server.onCommandRegistration(commands.registerAndReturn(ToolUtilCommands.class), commands);
         server.onCommandRegistration(commands.registerAndReturn(ToolCommands.class), commands);
         server.onCommandRegistration(commands.registerAndReturn(UtilityCommands.class), commands);
+        server.onCommandRegistration(LocalCommands.registerAndReturn(new File(config.getWorkingDirectory(), "plugins/WorldEdit"), commands),commands); /*Adds commands within jars in WorldEdit dir*/  
     }
 
     /**
