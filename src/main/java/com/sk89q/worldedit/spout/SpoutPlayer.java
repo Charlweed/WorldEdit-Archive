@@ -34,7 +34,6 @@ import org.spout.api.entity.Entity;
 import org.spout.api.geo.discrete.Point;
 import org.spout.api.inventory.ItemStack;
 import org.spout.api.material.MaterialRegistry;
-import org.spout.api.material.source.MaterialData;
 import org.spout.api.player.Player;
 
 public class SpoutPlayer extends LocalPlayer {
@@ -78,7 +77,7 @@ public class SpoutPlayer extends LocalPlayer {
 
     @Override
     public void giveItem(int type, int amt) {
-        player.getEntity().getInventory().addItem(new ItemStack(MaterialRegistry.get((short) type), amt),true);
+        player.getEntity().getInventory().addItem(new ItemStack(MaterialRegistry.get((short) type), amt), false);
     }
 
     @Override
@@ -115,6 +114,7 @@ public class SpoutPlayer extends LocalPlayer {
         entity.setPosition(SpoutUtil.toPoint(entity.getWorld(), pos));
         entity.setPitch(pitch);
         entity.setYaw(yaw);
+        player.getNetworkSynchronizer().setPositionDirty();
     }
 
     @Override

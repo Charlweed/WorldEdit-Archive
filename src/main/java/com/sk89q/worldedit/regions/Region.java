@@ -29,7 +29,7 @@ import java.util.Set;
  *
  * @author sk89q
  */
-public interface Region extends Iterable<BlockVector> {
+public interface Region extends Iterable<BlockVector>, Cloneable {
     /**
      * Get the lower point of a region.
      *
@@ -130,18 +130,27 @@ public interface Region extends Iterable<BlockVector> {
      * @return
      */
     public Set<Vector2D> getChunks();
-    
+
+    /**
+     * Return a list of 16*16*16 chunks in a region
+     *
+     * @return The chunk cubes this region overlaps with
+     */
+    public Set<Vector> getChunkCubes();
+
     /**
      * Get the world the selection is in
-     * 
+     *
      * @return
      */
     public LocalWorld getWorld();
-    
+
     /**
      * Sets the world the selection is in
-     * 
+     *
      * @return
      */
     public void setWorld(LocalWorld world);
+
+    public Region clone();
 }

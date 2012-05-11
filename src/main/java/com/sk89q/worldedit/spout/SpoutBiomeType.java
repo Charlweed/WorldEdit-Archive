@@ -18,20 +18,34 @@
 
 package com.sk89q.worldedit.spout;
 
-import org.spout.api.generator.biome.BiomeType;
+import org.spout.api.generator.biome.Biome;
 
 /**
  * @author zml2008
  */
-public class SpoutBiomeType extends com.sk89q.worldedit.BiomeType {
-    private final BiomeType type;
+public class SpoutBiomeType implements com.sk89q.worldedit.BiomeType {
+    private final Biome type;
 
-    public SpoutBiomeType(BiomeType type) {
-        super(type.getName().toLowerCase().replace(" ", ""));
+    public SpoutBiomeType(Biome type) {
         this.type = type;
     }
 
-    public BiomeType getSpoutBiome() {
+    @Override
+    public String getName() {
+        return type.getName().toLowerCase().replace(" ", "");
+    }
+
+    public Biome getSpoutBiome() {
         return type;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        return other instanceof SpoutBiomeType && ((SpoutBiomeType)other).type.equals(this.type);
+    }
+
+    @Override
+    public int hashCode() {
+        return 31 + type.hashCode();
     }
 }

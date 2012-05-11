@@ -24,8 +24,9 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.jar.JarFile;
-import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 
 import com.sk89q.util.yaml.YAMLProcessor;
@@ -45,10 +46,11 @@ import com.sk89q.worldedit.regions.*;
  * @author sk89q
  */
 public class WorldEditPlugin extends JavaPlugin {
+
     /**
-     * WorldEdit messages get sent here.
+     * The name of the CUI's plugin channel registration
      */
-    private static final Logger logger = Logger.getLogger("Minecraft.WorldEdit");
+    public static final String CUI_PLUGIN_CHANNEL = "WECUI";
 
     /**
      * The server interface that all server-related API goes through.
@@ -69,6 +71,11 @@ public class WorldEditPlugin extends JavaPlugin {
     private BukkitConfiguration config;
 
     /**
+     * Stores players who are using plugin channels for the cui
+     */
+    private final Map<String, Boolean> pluginChannelCui = new HashMap<String, Boolean>();
+
+    /**
      * Called on plugin enable.
      */
     public void onEnable() {
@@ -87,7 +94,7 @@ public class WorldEditPlugin extends JavaPlugin {
 
         // Set up configuration and such, including the permissions
         // resolver
-        config = new BukkitConfiguration(new YAMLProcessor(new File(getDataFolder(), "config.yml"), true), logger);
+        config = new BukkitConfiguration(new YAMLProcessor(new File(getDataFolder(), "config.yml"), true), this);
         PermissionsResolverManager.initialize(this);
 
         // Load the configuration
@@ -97,6 +104,8 @@ public class WorldEditPlugin extends JavaPlugin {
         server = new BukkitServerInterface(this, getServer());
         controller = new WorldEdit(server, config);
         api = new WorldEditAPI(this);
+        getServer().getMessenger().registerIncomingPluginChannel(this, CUI_PLUGIN_CHANNEL, new CUIChannelListener(this));
+        getServer().getMessenger().registerOutgoingPluginChannel(this, CUI_PLUGIN_CHANNEL);
 
         // Now we can register events!
         getServer().getPluginManager().registerEvents(new WorldEditListener(this), this);
@@ -146,7 +155,7 @@ public class WorldEditPlugin extends JavaPlugin {
                 if (copy == null) throw new FileNotFoundException();
                 input = file.getInputStream(copy);
             } catch (IOException e) {
-                logger.severe(getDescription().getName() + ": Unable to read default configuration: " + name);
+                getLogger().severe("Unable to read default configuration: " + name);
             }
             if (input != null) {
                 FileOutputStream output = null;
@@ -159,8 +168,7 @@ public class WorldEditPlugin extends JavaPlugin {
                         output.write(buf, 0, length);
                     }
 
-                    logger.info(getDescription().getName()
-                            + ": Default configuration file written: " + name);
+                    getLogger().info("Default configuration file written: " + name);
                 } catch (IOException e) {
                     e.printStackTrace();
                 } finally {
@@ -380,5 +388,18 @@ public class WorldEditPlugin extends JavaPlugin {
         RegionSelector sel = selection.getRegionSelector();
         session.setRegionSelector(BukkitUtil.getLocalWorld(player.getWorld()), sel);
         session.dispatchCUISelection(wrapPlayer(player));
+    }
+
+    public void setPluginChannelCUI(String name, boolean value) {
+        pluginChannelCui.put(name, value);
+    }
+
+    public boolean hasPluginChannelCUI(String name) {
+        Boolean val = pluginChannelCui.get(name);
+        if (val == null) {
+            return false;
+        } else {
+            return val;
+        }
     }
 }

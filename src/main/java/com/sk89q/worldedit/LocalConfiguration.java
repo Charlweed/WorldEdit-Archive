@@ -78,9 +78,12 @@ public abstract class LocalConfiguration {
             };
 
     public boolean profile = false;
+    public boolean enableWECUI = true;
     public Set<Integer> disallowedBlocks = new HashSet<Integer>();
     public int defaultChangeLimit = -1;
     public int maxChangeLimit = -1;
+    public int defaultMaxPolygonalPoints = -1;
+    public int maxPolygonalPoints = 20;
     public String shellSaveType = "";
     public SnapshotRepository snapshotRepo = null;
     public int maxRadius = -1;

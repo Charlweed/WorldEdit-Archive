@@ -46,7 +46,7 @@ import java.util.regex.Pattern;
 /**
  * Handles all events thrown in relation to a Player
  */
-public class WorldEditPlayerListener implements Listener {
+public class WorldEditListener implements Listener {
     /**
      * Plugin.
      */
@@ -61,7 +61,7 @@ public class WorldEditPlayerListener implements Listener {
      *
      * @param plugin
      */
-    public WorldEditPlayerListener(WorldEditPlugin plugin) {
+    public WorldEditListener(WorldEditPlugin plugin) {
         this.plugin = plugin;
     }
 
@@ -136,7 +136,7 @@ public class WorldEditPlayerListener implements Listener {
             }
 
             if (!event.isAir() && !ignoreLeftClickAir) {
-                final int taskId = Spout.getGame().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+                final int taskId = Spout.getEngine().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
                     public void run() {
                         ignoreLeftClickAir = false;
                     }

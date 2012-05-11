@@ -25,6 +25,7 @@ import com.sk89q.worldedit.BiomeType;
 import com.sk89q.worldedit.BlockVector2D;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.EntityType;
+import com.sk89q.worldedit.LocalEntity;
 import com.sk89q.worldedit.LocalWorld;
 import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.Vector;
@@ -48,6 +49,9 @@ import org.spout.vanilla.controller.object.moving.PrimedTnt;
 import org.spout.vanilla.controller.object.projectile.Arrow;
 import org.spout.vanilla.controller.object.vehicle.Boat;
 import org.spout.vanilla.controller.object.vehicle.Minecart;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SpoutWorld extends LocalWorld {
     private World world;
@@ -90,7 +94,7 @@ public class SpoutWorld extends LocalWorld {
     public boolean setBlockType(Vector pt, int type) {
         Material mat = MaterialRegistry.get((short) type);
         if (mat != null && mat instanceof BlockMaterial) {
-            return world.setBlockMaterial(pt.getBlockX(), pt.getBlockY(), pt.getBlockZ(), (BlockMaterial) mat, (short)0, true, WorldEditPlugin.getInstance());
+            return world.setBlockMaterial(pt.getBlockX(), pt.getBlockY(), pt.getBlockZ(), (BlockMaterial) mat, (short)0, WorldEditPlugin.getInstance());
         }
         return false;
     }
@@ -118,7 +122,7 @@ public class SpoutWorld extends LocalWorld {
     public boolean setTypeIdAndData(Vector pt, int type, int data) {
         Material mat = MaterialRegistry.get((short) type);
         if (mat != null && mat instanceof BlockMaterial) {
-            return world.setBlockMaterial(pt.getBlockX(), pt.getBlockY(), pt.getBlockZ(), (BlockMaterial) mat, (short)data, true, WorldEditPlugin.getInstance());
+            return world.setBlockMaterial(pt.getBlockX(), pt.getBlockY(), pt.getBlockZ(), (BlockMaterial) mat, (short)data, WorldEditPlugin.getInstance());
         }
         return false;
     }
@@ -155,7 +159,7 @@ public class SpoutWorld extends LocalWorld {
      */
     @Override
     public void setBlockData(Vector pt, int data) {
-        world.setBlockData(pt.getBlockX(), pt.getBlockY(), pt.getBlockZ(), (short) data, true, WorldEditPlugin.getInstance());
+        world.setBlockData(pt.getBlockX(), pt.getBlockY(), pt.getBlockZ(), (short) data, WorldEditPlugin.getInstance());
     }
 
     /**
@@ -202,11 +206,12 @@ public class SpoutWorld extends LocalWorld {
             BiomeGenerator gen = (BiomeGenerator) world.getGenerator();
             return new SpoutBiomeType(gen.getBiome(pt.getBlockX(), pt.getBlockZ(), world.getSeed()));
         }
-        return new BiomeType("Unknown");
+        return BiomeType.UNKNOWN;
     }
 
     public void setBiome(Vector2D pt, BiomeType biome) {
-        if (world.getGenerator() instanceof BiomeGenerator) {
+        if (biome instanceof SpoutBiomeType &&
+                world.getGenerator() instanceof BiomeGenerator) {
             BiomeGenerator gen = (BiomeGenerator) world.getGenerator();
             gen.setBiome(new Vector3(pt.getBlockX(), 0, pt.getBlockZ()), ((SpoutBiomeType) biome).getSpoutBiome());
         }
@@ -731,5 +736,36 @@ public class SpoutWorld extends LocalWorld {
         return true;
         */
         return false;
+    }
+
+    @Override
+    public SpoutEntity[] getEntities(Region region) {
+        List<SpoutEntity> entities = new ArrayList<SpoutEntity>();
+        for (Vector pt : region.getChunkCubes()) {
+            Chunk chunk = world.getChunk(pt.getBlockX(), pt.getBlockY(), pt.getBlockZ(), false);
+            if (chunk == null) {
+                continue;
+            }
+            for (Entity ent : chunk.getEntities()) {
+                if (region.contains(SpoutUtil.toVector(ent.getPosition()))) {
+                    entities.add(new SpoutEntity(SpoutUtil.toLocation(ent), ent.getId(), ent.getController()));
+                }
+            }
+        }
+        return entities.toArray(new SpoutEntity[entities.size()]);
+    }
+
+    @Override
+    public int killEntities(LocalEntity... entities) {
+        int amount = 0;
+        for (LocalEntity weEnt : entities) {
+            SpoutEntity entity = (SpoutEntity) weEnt;
+            Entity spoutEntity = world.getEntity(entity.getEntityId());
+            if (spoutEntity != null) {
+                spoutEntity.kill();
+                ++amount;
+            }
+        }
+        return amount;
     }
 }

@@ -167,6 +167,11 @@ public class Polygonal2DRegion extends AbstractRegion implements FlatRegion {
      *
      * @return min y
      */
+    public int getMinimumY() {
+        return minY;
+    }
+
+    @Deprecated
     public int getMininumY() {
         return minY;
     }
@@ -269,7 +274,7 @@ public class Polygonal2DRegion extends AbstractRegion implements FlatRegion {
     /**
      * Expand the region.
      *
-     * @param change
+     * @param changes
      */
     public void expand(Vector... changes) throws RegionOperationException {
         for (Vector change : changes) {
@@ -292,7 +297,7 @@ public class Polygonal2DRegion extends AbstractRegion implements FlatRegion {
     /**
      * Contract the region.
      *
-     * @param change
+     * @param changes
      */
     public void contract(Vector... changes) throws RegionOperationException {
         for (Vector change : changes) {
@@ -416,11 +421,30 @@ public class Polygonal2DRegion extends AbstractRegion implements FlatRegion {
         Vector max = getMaximumPoint();
 
         for (int x = min.getBlockX(); x <= max.getBlockX(); ++x) {
+            for (int z = min.getBlockZ(); z <= max.getBlockZ(); ++z) {
+                if (contains(new BlockVector(x, minY, z))) { // Not the best
+                    chunks.add(new BlockVector2D(x >> ChunkStore.CHUNK_SHIFTS,
+                            z >> ChunkStore.CHUNK_SHIFTS));
+                }
+            }
+        }
+
+        return chunks;
+    }
+
+    @Override
+    public Set<Vector> getChunkCubes() {
+        Set<Vector> chunks = new HashSet<Vector>();
+
+        Vector min = getMinimumPoint();
+        Vector max = getMaximumPoint();
+
+        for (int x = min.getBlockX(); x <= max.getBlockX(); ++x) {
             for (int y = min.getBlockY(); y <= max.getBlockY(); ++y) {
                 for (int z = min.getBlockZ(); z <= max.getBlockZ(); ++z) {
-                    Vector pt = new Vector(x, y, z);
-                    if (contains(pt)) { // Not the best
-                        chunks.add(ChunkStore.toChunk(pt));
+                    if (contains(new BlockVector(x, y, z))) { // Not the best
+                        chunks.add(new BlockVector(x >> ChunkStore.CHUNK_SHIFTS,
+                                y >> ChunkStore.CHUNK_SHIFTS, z >> ChunkStore.CHUNK_SHIFTS));
                     }
                 }
             }
@@ -468,7 +492,7 @@ public class Polygonal2DRegion extends AbstractRegion implements FlatRegion {
      */
     @Override
     public Iterator<BlockVector> iterator() {
-        return new RegionIterator(this);
+        return new FlatRegion3DIterator(this);
     }
 
     @Override
@@ -499,5 +523,11 @@ public class Polygonal2DRegion extends AbstractRegion implements FlatRegion {
         }
         sb.append(" * (" + minY + " - " + maxY + ")");
         return sb.toString();
+    }
+
+    public Polygonal2DRegion clone() {
+        Polygonal2DRegion clone = (Polygonal2DRegion) super.clone();
+        clone.points = new ArrayList<BlockVector2D>(points);
+        return clone; 
     }
 }
