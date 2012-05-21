@@ -36,6 +36,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import org.spout.api.scheduler.TaskPriority;
 
 public class SpoutServerInterface extends ServerInterface {
     public Engine game;
@@ -74,7 +75,7 @@ public class SpoutServerInterface extends ServerInterface {
 
     @Override
     public int schedule(long delay, long period, Runnable task) {
-        return game.getScheduler().scheduleSyncRepeatingTask(plugin, task, delay, period);
+        return game.getScheduler().scheduleSyncRepeatingTask(plugin, task, delay, period,TaskPriority.NORMAL);
     }
 
     @Override

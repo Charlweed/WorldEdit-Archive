@@ -42,6 +42,7 @@ import org.spout.api.geo.discrete.Point;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.spout.api.scheduler.TaskPriority;
 
 /**
  * Handles all events thrown in relation to a Player
@@ -140,7 +141,7 @@ public class WorldEditListener implements Listener {
                     public void run() {
                         ignoreLeftClickAir = false;
                     }
-                }, 2);
+                }, 2,TaskPriority.NORMAL);
 
                 if (taskId != -1) {
                     ignoreLeftClickAir = true;

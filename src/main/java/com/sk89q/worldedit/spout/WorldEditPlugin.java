@@ -41,6 +41,7 @@ import org.spout.api.util.Named;
 import java.io.*;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
+import org.spout.api.scheduler.TaskPriority;
 
 /**
  * Plugin for Spout.
@@ -99,8 +100,7 @@ public class WorldEditPlugin extends CommonPlugin implements Named {
         // Now we can register events!
         registerEvents();
 
-        getGame().getScheduler().scheduleAsyncRepeatingTask(this,
-                new SessionTimer(controller, getGame()), 120, 120);
+        getGame().getScheduler().scheduleAsyncRepeatingTask(this, new SessionTimer(controller, getGame()), 120, 120,TaskPriority.NORMAL);
     }
 
     /**
