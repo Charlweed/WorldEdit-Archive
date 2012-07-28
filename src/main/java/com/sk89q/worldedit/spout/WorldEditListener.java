@@ -39,10 +39,10 @@ import org.spout.api.event.server.PreCommandEvent;
 import org.spout.api.event.world.WorldLoadEvent;
 import org.spout.api.generator.biome.BiomeGenerator;
 import org.spout.api.geo.discrete.Point;
+import org.spout.api.scheduler.TaskPriority;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.spout.api.scheduler.TaskPriority;
 
 /**
  * Handles all events thrown in relation to a Player
@@ -141,7 +141,7 @@ public class WorldEditListener implements Listener {
                     public void run() {
                         ignoreLeftClickAir = false;
                     }
-                }, 2,TaskPriority.NORMAL);
+                }, 100, TaskPriority.NORMAL);
 
                 if (taskId != -1) {
                     ignoreLeftClickAir = true;

@@ -163,7 +163,7 @@ public class SnapshotRestore {
                 // Now just copy blocks!
                 for (Vector pos : entry.getValue()) {
                     BaseBlock block = chunk.getBlock(pos);
-                    editSession.setBlock(pos, block);
+                    editSession.rawSetBlock(pos, block);
                 }
             } catch (MissingChunkException me) {
                 missingChunks.add(chunkPos);

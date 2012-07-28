@@ -30,11 +30,13 @@ import com.sk89q.worldedit.WorldVector;
 import com.sk89q.worldedit.bags.BlockBag;
 import com.sk89q.worldedit.cui.CUIEvent;
 
+import org.spout.api.chat.style.ChatStyle;
 import org.spout.api.entity.Entity;
 import org.spout.api.geo.discrete.Point;
 import org.spout.api.inventory.ItemStack;
 import org.spout.api.material.MaterialRegistry;
 import org.spout.api.player.Player;
+import org.spout.vanilla.controller.living.player.VanillaPlayer;
 
 public class SpoutPlayer extends LocalPlayer {
     private Player player;
@@ -49,7 +51,8 @@ public class SpoutPlayer extends LocalPlayer {
 
     @Override
     public int getItemInHand() {
-        ItemStack itemStack = player.getEntity().getInventory().getCurrentItem();
+        VanillaPlayer vanillaPlayer = (VanillaPlayer) player.getEntity().getController();
+        ItemStack itemStack = vanillaPlayer.getInventory().getQuickbar().getCurrentItem();
         return itemStack != null ? itemStack.getMaterial().getId() : 0;
     }
 
@@ -77,7 +80,8 @@ public class SpoutPlayer extends LocalPlayer {
 
     @Override
     public void giveItem(int type, int amt) {
-        player.getEntity().getInventory().addItem(new ItemStack(MaterialRegistry.get((short) type), amt), false);
+        VanillaPlayer vanillaPlayer = (VanillaPlayer) player.getEntity().getController();
+        vanillaPlayer.getInventory().addItem(new ItemStack(MaterialRegistry.get((short) type), amt), false);
     }
 
     @Override
@@ -90,21 +94,21 @@ public class SpoutPlayer extends LocalPlayer {
     @Override
     public void print(String msg) {
         for (String part : msg.split("\n")) {
-            player.sendMessage("\u00A7d" + part);
+            player.sendMessage(ChatStyle.PINK, part);
         }
     }
 
     @Override
     public void printDebug(String msg) {
         for (String part : msg.split("\n")) {
-            player.sendMessage("\u00A77" + part);
+            player.sendMessage(ChatStyle.GRAY, part);
         }
     }
 
     @Override
     public void printError(String msg) {
         for (String part : msg.split("\n")) {
-            player.sendMessage("\u00A7c" + part);
+            player.sendMessage(ChatStyle.RED,  part);
         }
     }
 

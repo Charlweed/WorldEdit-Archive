@@ -36,19 +36,18 @@ import org.spout.api.command.CommandSource;
 import org.spout.api.geo.World;
 import org.spout.api.player.Player;
 import org.spout.api.plugin.CommonPlugin;
-import org.spout.api.util.Named;
+import org.spout.api.scheduler.TaskPriority;
 
 import java.io.*;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
-import org.spout.api.scheduler.TaskPriority;
 
 /**
  * Plugin for Spout.
  *
  * @author sk89q
  */
-public class WorldEditPlugin extends CommonPlugin implements Named {
+public class WorldEditPlugin extends CommonPlugin {
     /**
      * The server interface that all server-related API goes through.
      */
@@ -94,20 +93,21 @@ public class WorldEditPlugin extends CommonPlugin implements Named {
         loadConfiguration();
 
         // Setup interfaces
-        server = new SpoutServerInterface(this, getGame());
+        server = new SpoutServerInterface(this, getEngine());
         controller = new WorldEdit(server, config);
 
         // Now we can register events!
         registerEvents();
 
-        getGame().getScheduler().scheduleAsyncRepeatingTask(this, new SessionTimer(controller, getGame()), 120, 120,TaskPriority.NORMAL);
+        getEngine().getScheduler().scheduleAsyncRepeatingTask(this,
+                new SessionTimer(controller, getEngine()), 6 * 1000, 6 * 1000, TaskPriority.LOWEST);
     }
 
     /**
      * Called on plugin disable.
      */
     public void onDisable() {
-        for (Player player : getGame().getOnlinePlayers()) {
+        for (Player player : getEngine().getOnlinePlayers()) {
             LocalPlayer lPlayer = wrapPlayer(player);
             if (controller.getSession(lPlayer).hasCUISupport()) {
                 lPlayer.dispatchCUIHandshake();
@@ -115,7 +115,7 @@ public class WorldEditPlugin extends CommonPlugin implements Named {
         }
         controller.clearSessions();
         config.unload();
-        getGame().getScheduler().cancelTasks(this);
+        getEngine().getScheduler().cancelTasks(this);
     }
 
     /**
@@ -130,7 +130,7 @@ public class WorldEditPlugin extends CommonPlugin implements Named {
      * Register the events used by WorldEdit.
      */
     protected void registerEvents() {
-        getGame().getEventManager().registerEvents(new WorldEditListener(this), this);
+        getEngine().getEventManager().registerEvents(new WorldEditListener(this), this);
     }
 
     /**
@@ -343,11 +343,6 @@ public class WorldEditPlugin extends CommonPlugin implements Named {
         RegionSelector sel = selection.getRegionSelector();
         session.setRegionSelector(SpoutUtil.getLocalWorld(player.getEntity().getWorld()), sel);
         session.dispatchCUISelection(wrapPlayer(player));
-    }
-
-    @Override
-    public String getName() {
-        return getDescription().getName();
     }
 
     static WorldEditPlugin getInstance() {

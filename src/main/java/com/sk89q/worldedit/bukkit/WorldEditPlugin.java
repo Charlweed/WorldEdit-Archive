@@ -24,8 +24,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 
@@ -73,7 +73,7 @@ public class WorldEditPlugin extends JavaPlugin {
     /**
      * Stores players who are using plugin channels for the cui
      */
-    private final Map<String, Boolean> pluginChannelCui = new HashMap<String, Boolean>();
+    private final Set<String> pluginChannelCui = new HashSet<String>();
 
     /**
      * Called on plugin enable.
@@ -391,15 +391,14 @@ public class WorldEditPlugin extends JavaPlugin {
     }
 
     public void setPluginChannelCUI(String name, boolean value) {
-        pluginChannelCui.put(name, value);
+        if (value) {
+            pluginChannelCui.add(name);
+        } else {
+            pluginChannelCui.remove(name);
+        }
     }
 
     public boolean hasPluginChannelCUI(String name) {
-        Boolean val = pluginChannelCui.get(name);
-        if (val == null) {
-            return false;
-        } else {
-            return val;
-        }
+        return pluginChannelCui.contains(name);
     }
 }
