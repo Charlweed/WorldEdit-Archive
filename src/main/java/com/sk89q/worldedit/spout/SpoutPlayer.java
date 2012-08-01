@@ -52,7 +52,7 @@ public class SpoutPlayer extends LocalPlayer {
 
     @Override
     public int getItemInHand() {
-        VanillaPlayer vanillaPlayer = (VanillaPlayer) player.getEntity().getController();
+        VanillaPlayer vanillaPlayer = (VanillaPlayer) player.getController();
         ItemStack itemStack = vanillaPlayer.getInventory().getQuickbar().getCurrentItem();
         return itemStack != null ? ((VanillaMaterial) itemStack.getMaterial()).getMinecraftId() : 0;
     }
@@ -64,24 +64,24 @@ public class SpoutPlayer extends LocalPlayer {
 
     @Override
     public WorldVector getPosition() {
-        Point loc = player.getEntity().getPosition();
+        Point loc = player.getPosition();
         return new WorldVector(SpoutUtil.getLocalWorld(loc.getWorld()),
                 loc.getX(), loc.getY(), loc.getZ());
     }
 
     @Override
     public double getPitch() {
-        return player.getEntity().getPitch();
+        return player.getPitch();
     }
 
     @Override
     public double getYaw() {
-        return player.getEntity().getYaw();
+        return player.getYaw();
     }
 
     @Override
     public void giveItem(int type, int amt) {
-        VanillaPlayer vanillaPlayer = (VanillaPlayer) player.getEntity().getController();
+        VanillaPlayer vanillaPlayer = (VanillaPlayer) player.getController();
         vanillaPlayer.getInventory().addItem(new ItemStack(VanillaMaterials.getMaterial((short) type), amt), false);
     }
 
@@ -115,7 +115,7 @@ public class SpoutPlayer extends LocalPlayer {
 
     @Override
     public void setPosition(Vector pos, float pitch, float yaw) {
-        final Entity entity = player.getEntity();
+        final Entity entity = player;
         entity.setPosition(SpoutUtil.toPoint(entity.getWorld(), pos));
         entity.setPitch(pitch);
         entity.setYaw(yaw);
@@ -139,7 +139,7 @@ public class SpoutPlayer extends LocalPlayer {
 
     @Override
     public LocalWorld getWorld() {
-        return SpoutUtil.getLocalWorld(player.getEntity().getWorld());
+        return SpoutUtil.getLocalWorld(player.getWorld());
     }
 
     @Override
