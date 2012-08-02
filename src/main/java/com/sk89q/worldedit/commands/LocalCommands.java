@@ -38,12 +38,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Registers Local Commands by registering all of the commands, in all of the 
+ * Registers Local Commands by registering all of the commands, in all of the
  * jars, in the WorldEdit directory.
  * <p>
  * Usage: Given a jar that has a class or classes with methods annotated
  * with the <code>Command</code>  <code>Annotation</code>.<br/>
- * Place the jar in the <code>"plugins/WorldEdit"</code> directory of your 
+ * Place the jar in the <code>"plugins/WorldEdit"</code> directory of your
  * Bukkit server installation.<br/>
  * Restart your Bukkit server.<br/> That's it!<br/>
  * This allows new Java-based WorldEdit commands to be added, without
@@ -51,7 +51,7 @@ import java.util.List;
  * <p>
  * Developer Notes:
  * <p>
- * Also, the available <code>Logger</code> does not seem to  support the 
+ * Also, the available <code>Logger</code> does not seem to  support the
  * default Loggers formatting functionality, so logs concatenate strings instead
  * of using <code>{}</code>.
  * @param <T> command sender class
@@ -188,7 +188,7 @@ public class LocalCommands<T> {
             return result;
         }
         /**
-         * Parameters of the method to add an URL to the System classes. 
+         * Parameters of the method to add an URL to the System classes.
          */
         private static final Class<?>[] URL_PARAMETER = new Class<?>[]{URL.class};
         private static final Class<?>[] CLASSNAME_PARAMETER = new Class<?>[]{String.class};
@@ -198,7 +198,7 @@ public class LocalCommands<T> {
     }
 
     /***
-     * Accepts any file that is a directory. Accepts Symbolic links to dirs as well 
+     * Accepts any file that is a directory. Accepts Symbolic links to dirs as well
      * in Windows NT+. Symbolic links can only be truly detected in Java 1.7
      ***/
     private static class IsDirFilter extends javax.swing.filechooser.FileFilter implements java.io.FileFilter {
@@ -222,7 +222,7 @@ public class LocalCommands<T> {
     }
 
     /***
-     * Accepts any file that is a plain,regular file. Makes crude attempt to reject 
+     * Accepts any file that is a plain,regular file. Makes crude attempt to reject
      * symbolic links. Often fails to detect links in Windows NT+
      * Can only be fixed in Java 1.7
      ***/
@@ -235,9 +235,9 @@ public class LocalCommands<T> {
 
         /*****
          * @param file
-         * @return {@code true} if the file is a symbolic link. However this often fails to 
+         * @return {@code true} if the file is a symbolic link. However this often fails to
          * correctly return true on JVMs before 1.7, especially on Windows.
-         * @throws IOException  
+         * @throws IOException
          * @deprecated There is no good way to do this on Windows without a 1.7 JVM
          */
         @Deprecated
@@ -334,11 +334,11 @@ public class LocalCommands<T> {
     }
 
     /**
-     * Registers all of the commands, in all of the classes, in all of the jars, in 
+     * Registers all of the commands, in all of the classes, in all of the jars, in
      * all of all of the directories and subdirectories in the WorldEdit directory.
      */
     private void registerExtensionCommands() {
-        LOGGER.log(Level.FINE, getExtenensionsDir().toString());
+        LOGGER.log(Level.FINE, getExtenensionsDir().getAbsolutePath());
         registerExtensionCommandsInDir(getExtenensionsDir());
     }
 
@@ -348,6 +348,13 @@ public class LocalCommands<T> {
         if (!DIR_FILTER.accept(extDir)){
             throw new IllegalArgumentException("File " + extDir.toString() + " is not a directory.");
         }
+        int jarCount = extDir.listFiles(new IsJarFilter()).length;
+        
+        StringBuilder jarCountMessage = new StringBuilder("Found ");
+        jarCountMessage.append(jarCount);
+        jarCountMessage.append(" jar files in ");
+        jarCountMessage.append(extDir.getAbsolutePath());
+        LOGGER.log(Level.INFO, jarCountMessage.toString());
         /**Add All Jars to the classpath before we attempt to load any class.**/
         for(File someJar : extDir.listFiles(new IsJarFilter())) {
             URL someJarURL;
@@ -355,7 +362,7 @@ public class LocalCommands<T> {
                 someJarURL = someJar.toURI().toURL();
                 if (!CLASS_URLS.contains(someJarURL)){
                     CLASS_URLS.add(someJarURL);
-                    LOGGER.log(Level.INFO, "Added " + someJarURL + " to classpath");                    
+                    LOGGER.log(Level.INFO, "Added " + someJarURL + " to classpath");
                     ClasspathJarAppender.addURL(someJarURL);
                 }
             }
@@ -388,12 +395,12 @@ public class LocalCommands<T> {
 
             JarFile jarfile;
             URL someJarURL;
-            someJarURL = someJar.toURI().toURL();            
+            someJarURL = someJar.toURI().toURL();
             if (!CLASS_URLS.contains(someJarURL)){
                 CLASS_URLS.add(someJarURL);
-                LOGGER.log(Level.INFO, "Added " + someJarURL + " to classpath");                    
+                LOGGER.log(Level.INFO, "Added " + someJarURL + " to classpath");
                 ClasspathJarAppender.addURL(someJarURL);
-            }            
+            }
             jarfile = new JarFile(someJar);
             for(JarEntry someZipEntry : Collections.list(jarfile.entries())) {
                 entryName = someZipEntry.getName();
@@ -493,20 +500,20 @@ public class LocalCommands<T> {
     }
 
     /**
-     * Calls RegisterandReturn on every Class that contains Commands, in all of 
+     * Calls RegisterandReturn on every Class that contains Commands, in all of
      * the jars, in the given directory. This
      * allows for easy deployment of Java based commands.
      * @param wcPluginDir the plugin directory, where the command jars are.
-     * @param commandManager The CommandManager for the WorldEdit plugin. 
+     * @param commandManager The CommandManager for the WorldEdit plugin.
      * @return
      */
     public static List<Command> registerAndReturn(File wcPluginDir, CommandsManager<LocalPlayer> commandManager){
         List<Command> result = new ArrayList<Command>();
         try {
 
-            LOGGER.log(Level.INFO, "Searching directory \"" + wcPluginDir.toString() + "\" for Commands");
             /** Logger does not support {} **/
             if (wcPluginDir.exists()){
+                LOGGER.log(Level.INFO, "Searching directory \"" + wcPluginDir.getAbsolutePath() + "\" for Commands");
                 LocalCommands<LocalPlayer> jarRegistrar = new LocalCommands<LocalPlayer>(commandManager, wcPluginDir);
                 jarRegistrar.registerExtensionCommands();
                 result.addAll(jarRegistrar._registredCommands);
@@ -538,7 +545,8 @@ public class LocalCommands<T> {
     private CommandsManager<T> _commandManager;
     private File _extenensionsDir = null;
     private static final List<URL> CLASS_URLS = new ArrayList<URL>(4);
-    private static final Logger LOGGER = Logger.getLogger("Minecraft.WorldEdit");
+//    private static final Logger LOGGER = Logger.getLogger("Minecraft.WorldEdit");
+    private static final Logger LOGGER = Logger.getLogger(LocalCommands.class.getName());
     private static final IsDirFilter DIR_FILTER = new IsDirFilter();
     private static final IsFileFilter FILE_FILTER = new IsFileFilter();
     private static final IsJarFilter JAR_FILTER = new IsJarFilter();

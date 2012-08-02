@@ -199,7 +199,7 @@ public class WorldEdit {
         reg(ToolUtilCommands.class);
         reg(ToolCommands.class);
         reg(UtilityCommands.class);
-        server.onCommandRegistration(LocalCommands.registerAndReturn(new File(config.getWorkingDirectory(), "plugins/WorldEdit"), commands),commands); /*Adds commands within jars in WorldEdit dir*/  
+        server.onCommandRegistration(LocalCommands.registerAndReturn(config.getWorkingDirectory(), commands),commands); /*Adds commands within jars in WorldEdit dir*/
 }
     private void reg(Class<?> clazz) {
         server.onCommandRegistration(commands.registerAndReturn(clazz), commands);
@@ -621,7 +621,7 @@ public class WorldEdit {
             } else {
                 submask = new ExistingBlockMask();
             }
-            return new UnderOverlayMask(submask, firstChar == '>'); 
+            return new UnderOverlayMask(submask, firstChar == '>');
 
         case '$':
             Set<BiomeType> biomes = new HashSet<BiomeType>();
