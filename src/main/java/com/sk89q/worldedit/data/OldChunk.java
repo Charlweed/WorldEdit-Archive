@@ -19,12 +19,21 @@
 
 package com.sk89q.worldedit.data;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
-import com.sk89q.jnbt.*;
-import com.sk89q.worldedit.*;
-import com.sk89q.worldedit.blocks.*;
+
+import com.sk89q.jnbt.ByteArrayTag;
+import com.sk89q.jnbt.CompoundTag;
+import com.sk89q.jnbt.IntTag;
+import com.sk89q.jnbt.ListTag;
+import com.sk89q.jnbt.NBTUtils;
+import com.sk89q.jnbt.Tag;
+import com.sk89q.worldedit.BlockVector;
+import com.sk89q.worldedit.LocalWorld;
+import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.blocks.BaseBlock;
+import com.sk89q.worldedit.blocks.TileEntityBlock;
 
 /**
  * Represents a chunk.
@@ -164,12 +173,16 @@ public class OldChunk implements Chunk {
      * @return
      * @throws DataException
      */
-    private Map<String, Tag> getBlockTileEntity(Vector pos) throws DataException {
+    private CompoundTag getBlockTileEntity(Vector pos) throws DataException {
         if (tileEntities == null) {
             populateTileEntities();
         }
 
-        return tileEntities.get(new BlockVector(pos));
+        Map<String, Tag> values = tileEntities.get(new BlockVector(pos));
+        if (values == null) {
+            return null;
+        }
+        return new CompoundTag("", values);
     }
 
     @Override
@@ -178,7 +191,7 @@ public class OldChunk implements Chunk {
         int data = getBlockData(pos);
         BaseBlock block;
 
-        if (id == BlockID.WALL_SIGN || id == BlockID.SIGN_POST) {
+        /*if (id == BlockID.WALL_SIGN || id == BlockID.SIGN_POST) {
             block = new SignBlock(id, data);
         } else if (id == BlockID.CHEST) {
             block = new ChestBlock(data);
@@ -190,13 +203,15 @@ public class OldChunk implements Chunk {
             block = new MobSpawnerBlock(data);
         } else if (id == BlockID.NOTE_BLOCK) {
             block = new NoteBlock(data);
-        } else {
+        } else {*/
             block = new BaseBlock(id, data);
-        }
+        //}
 
         if (block instanceof TileEntityBlock) {
-            Map<String, Tag> tileEntity = getBlockTileEntity(pos);
-            ((TileEntityBlock) block).fromTileEntityNBT(tileEntity);
+            CompoundTag tileEntity = getBlockTileEntity(pos);
+            if (tileEntity != null) {
+                ((TileEntityBlock) block).setNbtData(tileEntity);
+            }
         }
 
         return block;

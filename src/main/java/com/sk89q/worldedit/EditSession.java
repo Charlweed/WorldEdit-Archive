@@ -18,27 +18,33 @@
  */
 package com.sk89q.worldedit;
 
-import java.util.Deque;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.Stack;
-import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
-import com.sk89q.worldedit.regions.*;
-import com.sk89q.worldedit.util.TreeGenerator;
-import com.sk89q.worldedit.bags.*;
-import com.sk89q.worldedit.blocks.*;
+import java.util.Set;
+import java.util.Stack;
+
+import com.sk89q.worldedit.bags.BlockBag;
+import com.sk89q.worldedit.bags.BlockBagException;
+import com.sk89q.worldedit.bags.UnplaceableBlockException;
+import com.sk89q.worldedit.blocks.BaseBlock;
+import com.sk89q.worldedit.blocks.BlockID;
+import com.sk89q.worldedit.blocks.BlockType;
 import com.sk89q.worldedit.expression.Expression;
 import com.sk89q.worldedit.expression.ExpressionException;
 import com.sk89q.worldedit.expression.runtime.RValue;
 import com.sk89q.worldedit.masks.Mask;
-import com.sk89q.worldedit.patterns.*;
+import com.sk89q.worldedit.patterns.Pattern;
+import com.sk89q.worldedit.regions.CuboidRegion;
+import com.sk89q.worldedit.regions.Region;
+import com.sk89q.worldedit.util.TreeGenerator;
 
 /**
  * This class can wrap all block editing operations into one "edit session" that
@@ -214,33 +220,19 @@ public class EditSession {
                 }
             }
         }
-
-        final boolean result;
-
-        if (world.usesBlockData(type)) {
+        
+        boolean result;
+        
+        if (type == 0) {
             if (fastMode) {
-                result = world.setTypeIdAndDataFast(pt, type, block.getData() > -1 ? block.getData() : 0);
+                result = world.setBlockTypeFast(pt, 0);
             } else {
-                result = world.setTypeIdAndData(pt, type, block.getData() > -1 ? block.getData() : 0);
+                result = world.setBlockType(pt, 0);
             }
         } else {
-            if (fastMode) {
-                result = world.setBlockTypeFast(pt, type);
-            } else {
-                result = world.setBlockType(pt, type);
-            }
+            result = world.setBlock(pt, block, fastMode);
         }
-        //System.out.println(pt + "" +result);
-
-        if (type != 0) {
-            if (block instanceof ContainerBlock) {
-                if (blockBag == null) {
-                    world.copyToWorld(pt, block);
-                }
-            } else if (block instanceof TileEntityBlock) {
-                world.copyToWorld(pt, block);
-            }
-        }
+        
         return result;
     }
 
@@ -408,53 +400,7 @@ public class EditSession {
      * @return BaseBlock
      */
     public BaseBlock rawGetBlock(Vector pt) {
-        world.checkLoadedChunk(pt);
-
-        int type = world.getBlockType(pt);
-        int data = world.getBlockData(pt);
-
-        switch (type) {
-        case BlockID.WALL_SIGN:
-        case BlockID.SIGN_POST: {
-            SignBlock block = new SignBlock(type, data);
-            world.copyFromWorld(pt, block);
-            return block;
-        }
-
-        case BlockID.CHEST: {
-            ChestBlock block = new ChestBlock(data);
-            world.copyFromWorld(pt, block);
-            return block;
-        }
-
-        case BlockID.FURNACE:
-        case BlockID.BURNING_FURNACE: {
-            FurnaceBlock block = new FurnaceBlock(type, data);
-            world.copyFromWorld(pt, block);
-            return block;
-        }
-
-        case BlockID.DISPENSER: {
-            DispenserBlock block = new DispenserBlock(data);
-            world.copyFromWorld(pt, block);
-            return block;
-        }
-
-        case BlockID.MOB_SPAWNER: {
-            MobSpawnerBlock block = new MobSpawnerBlock(data);
-            world.copyFromWorld(pt, block);
-            return block;
-        }
-
-        case BlockID.NOTE_BLOCK: {
-            NoteBlock block = new NoteBlock(data);
-            world.copyFromWorld(pt, block);
-            return block;
-        }
-
-        default:
-            return new BaseBlock(type, data);
-        }
+        return world.getBlock(pt);
     }
 
     /**
@@ -464,8 +410,8 @@ public class EditSession {
      */
     public void undo(EditSession sess) {
         for (Map.Entry<BlockVector, BaseBlock> entry : original) {
-            BlockVector pt = (BlockVector) entry.getKey();
-            sess.smartSetBlock(pt, (BaseBlock) entry.getValue());
+            BlockVector pt = entry.getKey();
+            sess.smartSetBlock(pt, entry.getValue());
         }
         sess.flushQueue();
     }
@@ -477,8 +423,8 @@ public class EditSession {
      */
     public void redo(EditSession sess) {
         for (Map.Entry<BlockVector, BaseBlock> entry : current) {
-            BlockVector pt = (BlockVector) entry.getKey();
-            sess.smartSetBlock(pt, (BaseBlock) entry.getValue());
+            BlockVector pt = entry.getKey();
+            sess.smartSetBlock(pt, entry.getValue());
         }
         sess.flushQueue();
     }
@@ -727,8 +673,8 @@ public class EditSession {
         final Set<BlockVector2D> dirtyChunks = new HashSet<BlockVector2D>();
 
         for (Map.Entry<BlockVector, BaseBlock> entry : queueAfter) {
-            BlockVector pt = (BlockVector) entry.getKey();
-            rawSetBlock(pt, (BaseBlock) entry.getValue());
+            BlockVector pt = entry.getKey();
+            rawSetBlock(pt, entry.getValue());
 
             // TODO: use ChunkStore.toChunk(pt) after optimizing it.
             if (fastMode) {
@@ -740,8 +686,8 @@ public class EditSession {
         // because it might cause the items to drop
         if (blockBag == null || missingBlocks.size() == 0) {
             for (Map.Entry<BlockVector, BaseBlock> entry : queueLast) {
-                BlockVector pt = (BlockVector) entry.getKey();
-                rawSetBlock(pt, (BaseBlock) entry.getValue());
+                BlockVector pt = entry.getKey();
+                rawSetBlock(pt, entry.getValue());
 
                 // TODO: use ChunkStore.toChunk(pt) after optimizing it.
                 if (fastMode) {
@@ -1399,6 +1345,27 @@ public class EditSession {
 
                 if (setBlock(pt, pattern.next(pt))) {
                     ++affected;
+                }
+            }
+        }
+
+        return affected;
+    }
+
+    public int center(Region region, Pattern pattern)
+            throws MaxChangedBlocksException {
+        Vector center = region.getCenter();
+        int x2 = center.getBlockX();
+        int y2 = center.getBlockY();
+        int z2 = center.getBlockZ();
+
+        int affected = 0;
+        for (int x = (int) center.getX(); x <= x2; x++) {
+            for (int y = (int) center.getY(); y <= y2; y++) {
+                for (int z = (int) center.getZ(); z <= z2; z++) {
+                    if (setBlock(new Vector(x, y, z), pattern)) {
+                        affected++;
+                    }
                 }
             }
         }

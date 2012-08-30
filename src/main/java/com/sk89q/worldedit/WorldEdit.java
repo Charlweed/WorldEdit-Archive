@@ -632,13 +632,17 @@ public class WorldEdit {
             }
             return new BiomeTypeMask(biomes);
 
+        case '%':
+            int i = Integer.parseInt(component.substring(1));
+            return new RandomMask(((double) i) / 100);
+
         case '!':
             if (component.length() > 1) {
                 return new InvertedMask(getBlockMaskComponent(player, session, masks, component.substring(1)));
             }
 
         default:
-            return new BlockTypeMask(getBlockIDs(player, component, true));
+            return new BlockMask(getBlocks(player, component, true, true));
         }
     }
 
