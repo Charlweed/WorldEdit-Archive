@@ -34,6 +34,7 @@ import com.sk89q.worldedit.spout.selections.Selection;
 import com.sk89q.worldedit.util.YAMLConfiguration;
 import org.spout.api.command.CommandSource;
 import org.spout.api.geo.World;
+import org.spout.api.Server;
 import org.spout.api.entity.Player;
 import org.spout.api.plugin.CommonPlugin;
 import org.spout.api.protocol.Protocol;
@@ -105,14 +106,14 @@ public class WorldEditPlugin extends CommonPlugin {
         }
 
         getEngine().getScheduler().scheduleAsyncRepeatingTask(this,
-                new SessionTimer(controller, getEngine()), 6 * 1000, 6 * 1000, TaskPriority.LOWEST);
+                new SessionTimer(controller, ((Server)getEngine())), 6 * 1000, 6 * 1000, TaskPriority.LOWEST);
     }
 
     /**
      * Called on plugin disable.
      */
     public void onDisable() {
-        for (Player player : getEngine().getOnlinePlayers()) {
+        for (Player player : ((Server)getEngine()).getOnlinePlayers()) {
             LocalPlayer lPlayer = wrapPlayer(player);
             if (controller.getSession(lPlayer).hasCUISupport()) {
                 lPlayer.dispatchCUIHandshake();

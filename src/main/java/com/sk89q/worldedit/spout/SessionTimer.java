@@ -23,7 +23,7 @@ package com.sk89q.worldedit.spout;
 
 import com.sk89q.worldedit.SessionCheck;
 import com.sk89q.worldedit.WorldEdit;
-import org.spout.api.Engine;
+import org.spout.api.Server;
 import org.spout.api.entity.Player;
 
 /**
@@ -35,17 +35,16 @@ public class SessionTimer implements Runnable {
 
     private WorldEdit worldEdit;
     private SessionCheck checker;
-
-    public SessionTimer(WorldEdit worldEdit, final Engine game) {
+   
+    public SessionTimer(WorldEdit worldEdit, final Server spoutServer) {
         this.worldEdit = worldEdit;
         this.checker = new SessionCheck() {
             public boolean isOnlinePlayer(String name) {
-                Player player = game.getPlayer(name, true);
+                Player player = spoutServer.getPlayer(name, true);
                 return player != null && player.isOnline();
             }
         };
     }
-
     public void run() {
         worldEdit.flushExpiredSessions(checker);
     }
