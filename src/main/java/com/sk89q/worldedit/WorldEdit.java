@@ -63,6 +63,7 @@ import com.sk89q.worldedit.commands.ClipboardCommands;
 import com.sk89q.worldedit.commands.GeneralCommands;
 import com.sk89q.worldedit.commands.GenerationCommands;
 import com.sk89q.worldedit.commands.HistoryCommands;
+import com.sk89q.worldedit.commands.LocalCommands;
 import com.sk89q.worldedit.commands.InsufficientArgumentsException;
 import com.sk89q.worldedit.commands.NavigationCommands;
 import com.sk89q.worldedit.commands.RegionCommands;
