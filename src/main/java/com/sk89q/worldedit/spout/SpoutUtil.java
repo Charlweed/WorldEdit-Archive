@@ -98,7 +98,7 @@ public class SpoutUtil {
     }
 
     public static Player matchSinglePlayer(Engine game, String name) {
-        return ((Server)game).getPlayer(name, false);
+        return game instanceof Server ? ((Server) game).getPlayer(name, false) : null;
     }
 
     public static Block toBlock(BlockWorldVector pt) {
