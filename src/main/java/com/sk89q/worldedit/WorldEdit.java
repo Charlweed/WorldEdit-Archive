@@ -114,6 +114,11 @@ public class WorldEdit {
     public static final Logger logger = Logger.getLogger("Minecraft.WorldEdit");
 
     /**
+     * Holds the current instance of this class, for static access
+     */
+    private static WorldEdit instance;
+    
+    /**
      * Holds WorldEdit's version.
      */
     private static String version;
@@ -132,6 +137,11 @@ public class WorldEdit {
      * List of commands.
      */
     private final CommandsManager<LocalPlayer> commands;
+    
+    /**
+     * Holds the factory responsible for the creation of edit sessions
+     */
+    private EditSessionFactory editSessionFactory = new EditSessionFactory();
 
     /**
      * Stores a list of WorldEdit sessions, keyed by players' names. Sessions
@@ -156,6 +166,7 @@ public class WorldEdit {
      * @param config
      */
     public WorldEdit(ServerInterface server, final LocalConfiguration config) {
+        instance = this;
         this.server = server;
         this.config = config;
 
@@ -252,6 +263,15 @@ public class WorldEdit {
 }
     private void reg(Class<?> clazz) {
         server.onCommandRegistration(commands.registerAndReturn(clazz), commands);
+    }
+
+    /**
+     * Gets the current instance of this class
+     * 
+     * @return
+     */
+    public static WorldEdit getInstance() {
+        return instance;
     }
 
     /**
@@ -1528,6 +1548,28 @@ public class WorldEdit {
      */
     public ServerInterface getServer() {
         return server;
+    }
+
+    /**
+     * Get the edit session factory
+     * 
+     * @return
+     */
+    public EditSessionFactory getEditSessionFactory() {
+        return this.editSessionFactory;
+    }
+
+    /**
+     * Set the edit session factory
+     * 
+     * @param factory
+     */
+    public void setEditSessionFactory(EditSessionFactory factory) {
+        if (factory == null) {
+            throw new IllegalArgumentException("New EditSessionFactory may not be null");
+        }
+        logger.info("Accepted EditSessionFactory of type " + factory.getClass().getName() + " from " + factory.getClass().getPackage().getName());
+        this.editSessionFactory = factory;
     }
 
     /**
