@@ -19,12 +19,13 @@
 
 package com.sk89q.worldedit;
 
-import com.sk89q.worldedit.blocks.BlockID;
-import com.sk89q.worldedit.blocks.ItemID;
-import com.sk89q.worldedit.snapshots.SnapshotRepository;
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
+
+import com.sk89q.worldedit.blocks.BlockID;
+import com.sk89q.worldedit.blocks.ItemID;
+import com.sk89q.worldedit.snapshots.SnapshotRepository;
 
 /**
  * Represents WorldEdit's configuration.
@@ -89,7 +90,8 @@ public abstract class LocalConfiguration {
     public int maxSuperPickaxeSize = 5;
     public int maxBrushRadius = 6;
     public boolean logCommands = false;
-    public boolean registerHelp = true;
+    public String logFile = "";
+    public boolean registerHelp = true; // what is the point of this, it's not even used
     public int wandItem = ItemID.WOOD_AXE;
     public boolean superPickaxeDrop = true;
     public boolean superPickaxeManyDrop = true;
@@ -104,6 +106,9 @@ public abstract class LocalConfiguration {
     public String scriptsDir = "craftscripts";
     public boolean showFirstUseVersion = true;
     public int butcherDefaultRadius = -1;
+    public int butcherMaxRadius = -1;
+    public boolean allowExtraDataValues = false;
+    public boolean allowSymlinks = false;
 
     /**
      * Loads the configuration.

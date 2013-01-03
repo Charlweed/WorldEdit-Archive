@@ -32,6 +32,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 
@@ -111,6 +113,7 @@ public class WorldEdit {
      * Logger for debugging.
      */
     public static final Logger logger = Logger.getLogger("Minecraft.WorldEdit");
+    public final Logger commandLogger = Logger.getLogger("Minecraft.WorldEdit.CommandLogger");
 
     /**
      * Holds the current instance of this class, for static access
@@ -168,6 +171,19 @@ public class WorldEdit {
         instance = this;
         this.server = server;
         this.config = config;
+
+        if (!config.logFile.equals("")) {
+            try {
+                FileHandler logFileHandler;
+                logFileHandler = new FileHandler(new File(config.getWorkingDirectory(),
+                        config.logFile).getAbsolutePath(), true);
+                logFileHandler.setFormatter(new LogFormat());
+                commandLogger.addHandler(logFileHandler);
+            } catch (IOException e) {
+                logger.log(Level.WARNING, "Could not use command log file " + config.logFile + ": "
+                        + e.getMessage());
+            }
+        }
 
         commands = new CommandsManager<LocalPlayer>() {
             @Override
@@ -236,7 +252,7 @@ public class WorldEdit {
                             break;
                         }
                     }
-                    logger.info(msg);
+                    commandLogger.info(msg);
                 }
                 super.invokeMethod(parent, args, player, method, instance, methodArgs, level);
             }
@@ -419,7 +435,7 @@ public class WorldEdit {
             // Parse the block data (optional)
             try {
                 data = (typeAndData.length > 1 && typeAndData[1].length() > 0) ? Integer.parseInt(typeAndData[1]) : (allowNoData ? -1 : 0);
-                if (data > 15 || (data < 0 && !(allAllowed && data == -1))) {
+                if ((data > 15 && !config.allowExtraDataValues) || (data < 0 && !(allAllowed && data == -1))) {
                     data = 0;
                 }
             } catch (NumberFormatException e) {
@@ -444,15 +460,12 @@ public class WorldEdit {
                                     case STONE:
                                         data = 0;
                                         break;
-
                                     case SANDSTONE:
                                         data = 1;
                                         break;
-
                                     case WOOD:
                                         data = 2;
                                         break;
-
                                     case COBBLESTONE:
                                         data = 3;
                                         break;
@@ -461,6 +474,10 @@ public class WorldEdit {
                                         break;
                                     case STONE_BRICK:
                                         data = 5;
+                                        break;
+                                    case NETHER_BRICK:
+                                        data = 6;
+                                        break;
 
                                     default:
                                         throw new InvalidItemException(arg, "Invalid step type '" + typeAndData[1] + "'");
@@ -825,7 +842,7 @@ public class WorldEdit {
             String filePath = f.getCanonicalPath();
             String dirPath = dir.getCanonicalPath();
 
-            if (!filePath.substring(0, dirPath.length()).equals(dirPath)) {
+            if (!filePath.substring(0, dirPath.length()).equals(dirPath) && !config.allowSymlinks) {
                 throw new FilenameResolutionException(filename,
                         "Path is outside allowable root");
             }
@@ -1063,7 +1080,7 @@ public class WorldEdit {
             blockBag.flushChanges();
         }
 
-        Set<Integer> missingBlocks = editSession.popMissingBlocks();
+        Map<Integer, Integer> missingBlocks = editSession.popMissingBlocks();
 
         if (missingBlocks.size() > 0) {
             StringBuilder str = new StringBuilder();
@@ -1071,12 +1088,14 @@ public class WorldEdit {
             int size = missingBlocks.size();
             int i = 0;
 
-            for (Integer id : missingBlocks) {
+            for (Integer id : missingBlocks.keySet()) {
                 BlockType type = BlockType.fromID(id);
 
                 str.append(type != null
                         ? type.getName() + " (" + id + ")"
                         : id.toString());
+
+                str.append(" [Amt: " + missingBlocks.get(id) + "]");
 
                 ++i;
 
@@ -1163,8 +1182,7 @@ public class WorldEdit {
                 return false;
             }
 
-            if (!player.hasPermission("worldedit.navigation.jumpto.tool")
-                    && !player.hasPermission("worldedit.navigation.jumpto")) { // TODO: Remove old permission
+            if (!player.hasPermission("worldedit.navigation.jumpto.tool") ){
                 return false;
             }
 
@@ -1202,8 +1220,7 @@ public class WorldEdit {
                 return false;
             }
 
-            if (!player.hasPermission("worldedit.navigation.thru.tool")
-                    && !player.hasPermission("worldedit.navigation.thru")) { // TODO: Remove old permission
+            if (!player.hasPermission("worldedit.navigation.thru.tool")) {
                 return false;
             }
 
