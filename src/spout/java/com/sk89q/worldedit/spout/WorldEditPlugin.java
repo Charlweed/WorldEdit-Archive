@@ -37,7 +37,6 @@ import org.spout.api.command.CommandSource;
 import org.spout.api.event.Cause;
 import org.spout.api.event.cause.PluginCause;
 import org.spout.api.geo.World;
-import org.spout.api.Server;
 import org.spout.api.entity.Player;
 import org.spout.api.plugin.CommonPlugin;
 import org.spout.api.plugin.Plugin;

@@ -25,23 +25,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import net.minecraft.server.v1_4_R1.NBTBase;
-import net.minecraft.server.v1_4_R1.NBTTagByte;
-import net.minecraft.server.v1_4_R1.NBTTagByteArray;
-import net.minecraft.server.v1_4_R1.NBTTagCompound;
-import net.minecraft.server.v1_4_R1.NBTTagDouble;
-import net.minecraft.server.v1_4_R1.NBTTagEnd;
-import net.minecraft.server.v1_4_R1.NBTTagFloat;
-import net.minecraft.server.v1_4_R1.NBTTagInt;
-import net.minecraft.server.v1_4_R1.NBTTagIntArray;
-import net.minecraft.server.v1_4_R1.NBTTagList;
-import net.minecraft.server.v1_4_R1.NBTTagLong;
-import net.minecraft.server.v1_4_R1.NBTTagShort;
-import net.minecraft.server.v1_4_R1.NBTTagString;
-import net.minecraft.server.v1_4_R1.TileEntity;
+import net.minecraft.server.NBTBase;
+import net.minecraft.server.NBTTagByte;
+import net.minecraft.server.NBTTagByteArray;
+import net.minecraft.server.NBTTagCompound;
+import net.minecraft.server.NBTTagDouble;
+import net.minecraft.server.NBTTagEnd;
+import net.minecraft.server.NBTTagFloat;
+import net.minecraft.server.NBTTagInt;
+import net.minecraft.server.NBTTagIntArray;
+import net.minecraft.server.NBTTagList;
+import net.minecraft.server.NBTTagLong;
+import net.minecraft.server.NBTTagShort;
+import net.minecraft.server.NBTTagString;
+import net.minecraft.server.TileEntity;
 
 import org.bukkit.World;
-import org.bukkit.craftbukkit.v1_4_R1.CraftWorld;
+import org.bukkit.craftbukkit.CraftWorld;
 
 import com.sk89q.jnbt.ByteArrayTag;
 import com.sk89q.jnbt.ByteTag;
@@ -81,7 +81,7 @@ public class DefaultNmsBlock extends NmsBlock {
     static {
         Field field;
         try {
-            field = net.minecraft.server.v1_4_R1.Block.class.getDeclaredField("isTileEntity");
+            field = net.minecraft.server.Block.class.getDeclaredField("isTileEntity");
             field.setAccessible(true);
         } catch (NoSuchFieldException e) {
             // logger.severe("Could not find NMS block tile entity field!");
@@ -270,7 +270,7 @@ public class DefaultNmsBlock extends NmsBlock {
     }
 
     public static boolean hasTileEntity(int type) {
-        net.minecraft.server.v1_4_R1.Block nmsBlock = getNmsBlock(type);
+        net.minecraft.server.Block nmsBlock = getNmsBlock(type);
         if (nmsBlock == null) {
             return false;
         }
@@ -282,11 +282,11 @@ public class DefaultNmsBlock extends NmsBlock {
         }
     }
 
-    public static net.minecraft.server.v1_4_R1.Block getNmsBlock(int type) {
-        if (type < 0 || type >= net.minecraft.server.v1_4_R1.Block.byId.length) {
+    public static net.minecraft.server.Block getNmsBlock(int type) {
+        if (type < 0 || type >= net.minecraft.server.Block.byId.length) {
             return null;
         }
-        return net.minecraft.server.v1_4_R1.Block.byId[type];
+        return net.minecraft.server.Block.byId[type];
     }
 
     /**
@@ -440,7 +440,7 @@ public class DefaultNmsBlock extends NmsBlock {
     }
 
     public static boolean isValidBlockType(int type) throws NoClassDefFoundError {
-        return type == 0 || (type >= 1 && type < net.minecraft.server.v1_4_R1.Block.byId.length
-                && net.minecraft.server.v1_4_R1.Block.byId[type] != null);
+        return type == 0 || (type >= 1 && type < net.minecraft.server.Block.byId.length
+                && net.minecraft.server.Block.byId[type] != null);
     }
 }
