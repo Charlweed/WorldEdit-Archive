@@ -58,6 +58,7 @@ public final class BlockData {
 
         case BlockID.POWERED_RAIL:
         case BlockID.DETECTOR_RAIL:
+        case BlockID.ACTIVATOR_RAIL:
             switch (data & 0x7) {
             case 0: return 1 | (data & ~0x7);
             case 1: return 0 | (data & ~0x7);
@@ -77,6 +78,7 @@ public final class BlockData {
         case BlockID.SPRUCE_WOOD_STAIRS:
         case BlockID.BIRCH_WOOD_STAIRS:
         case BlockID.JUNGLE_WOOD_STAIRS:
+        case BlockID.QUARTZ_STAIRS:
             switch (data) {
             case 0: return 2;
             case 1: return 3;
@@ -124,13 +126,24 @@ public final class BlockData {
         case BlockID.CHEST:
         case BlockID.FURNACE:
         case BlockID.BURNING_FURNACE:
-        case BlockID.DISPENSER:
         case BlockID.ENDER_CHEST:
+        case BlockID.TRAPPED_CHEST:
             switch (data) {
             case 2: return 5;
             case 3: return 4;
             case 4: return 2;
             case 5: return 3;
+            }
+            break;
+
+        case BlockID.DISPENSER:
+        case BlockID.DROPPER:
+            int dispPower = data & 0x8;
+            switch (data & ~0x8) {
+            case 2: return 5 | dispPower;
+            case 3: return 4 | dispPower;
+            case 4: return 2 | dispPower;
+            case 5: return 3 | dispPower;
             }
             break;
 
@@ -148,6 +161,8 @@ public final class BlockData {
             if (data >= 4 && data <= 11) data ^= 0xc;
             break;
 
+        case BlockID.COMPARATOR_OFF:
+        case BlockID.COMPARATOR_ON:
         case BlockID.REDSTONE_REPEATER_OFF:
         case BlockID.REDSTONE_REPEATER_ON:
             int dir = data & 0x03;
@@ -194,6 +209,8 @@ public final class BlockData {
         case BlockID.FENCE_GATE:
             return ((data + 1) & 0x3) | (data & ~0x3);
 
+        case BlockID.ANVIL:
+            return data ^ 0x1;
         }
 
         return data;
@@ -232,6 +249,7 @@ public final class BlockData {
 
         case BlockID.POWERED_RAIL:
         case BlockID.DETECTOR_RAIL:
+        case BlockID.ACTIVATOR_RAIL:
             int power = data & ~0x7;
             switch (data & 0x7) {
             case 1: return 0 | power;
@@ -252,6 +270,7 @@ public final class BlockData {
         case BlockID.SPRUCE_WOOD_STAIRS:
         case BlockID.BIRCH_WOOD_STAIRS:
         case BlockID.JUNGLE_WOOD_STAIRS:
+        case BlockID.QUARTZ_STAIRS:
             switch (data) {
             case 2: return 0;
             case 3: return 1;
@@ -299,8 +318,8 @@ public final class BlockData {
         case BlockID.CHEST:
         case BlockID.FURNACE:
         case BlockID.BURNING_FURNACE:
-        case BlockID.DISPENSER:
         case BlockID.ENDER_CHEST:
+        case BlockID.TRAPPED_CHEST:
             switch (data) {
             case 5: return 2;
             case 4: return 3;
@@ -309,6 +328,16 @@ public final class BlockData {
             }
             break;
 
+        case BlockID.DISPENSER:
+        case BlockID.DROPPER:
+            int dispPower = data & 0x8;
+            switch (data & ~0x8) {
+            case 5: return 2 | dispPower;
+            case 4: return 3 | dispPower;
+            case 2: return 4 | dispPower;
+            case 3: return 5 | dispPower;
+            }
+            break;
         case BlockID.PUMPKIN:
         case BlockID.JACKOLANTERN:
             switch (data) {
@@ -323,6 +352,8 @@ public final class BlockData {
             if (data >= 4 && data <= 11) data ^= 0xc;
             break;
 
+        case BlockID.COMPARATOR_OFF:
+        case BlockID.COMPARATOR_ON:
         case BlockID.REDSTONE_REPEATER_OFF:
         case BlockID.REDSTONE_REPEATER_ON:
             int dir = data & 0x03;
@@ -367,6 +398,10 @@ public final class BlockData {
 
         case BlockID.FENCE_GATE:
             return ((data + 3) & 0x3) | (data & ~0x3);
+
+        case BlockID.ANVIL:
+            return data ^ 0x1;
+
         }
 
         return data;
@@ -398,11 +433,11 @@ public final class BlockData {
 
         switch (direction) {
         case NORTH_SOUTH:
-            flipX = 1;
+            flipZ = 1;
             break;
 
         case WEST_EAST:
-            flipZ = 1;
+            flipX = 1;
             break;
 
         case UP_DOWN:
@@ -439,6 +474,7 @@ public final class BlockData {
 
         case BlockID.POWERED_RAIL:
         case BlockID.DETECTOR_RAIL:
+        case BlockID.ACTIVATOR_RAIL:
             switch (data & 0x7) {
             case 0:
             case 1:
@@ -465,6 +501,7 @@ public final class BlockData {
         case BlockID.SPRUCE_WOOD_STAIRS:
         case BlockID.BIRCH_WOOD_STAIRS:
         case BlockID.JUNGLE_WOOD_STAIRS:
+        case BlockID.QUARTZ_STAIRS:
             data ^= flipY << 2;
             switch (data) {
             case 0:
@@ -506,8 +543,8 @@ public final class BlockData {
         case BlockID.CHEST:
         case BlockID.FURNACE:
         case BlockID.BURNING_FURNACE:
-        case BlockID.DISPENSER:
         case BlockID.ENDER_CHEST:
+        case BlockID.TRAPPED_CHEST:
             switch (data) {
             case 2:
             case 3:
@@ -518,6 +555,22 @@ public final class BlockData {
             }
             break;
 
+        case BlockID.DROPPER:
+        case BlockID.DISPENSER:
+            int dispPower = data & 0x8;
+            switch (data & ~0x8) {
+            case 2:
+            case 3:
+                return (data ^ flipZ) | dispPower;
+            case 4:
+            case 5:
+                return (data ^ flipX) | dispPower;
+            case 0:
+            case 1:
+                return (data ^ flipY) | dispPower;
+            }
+            break;
+
         case BlockID.PUMPKIN:
         case BlockID.JACKOLANTERN:
             if (data > 3) break;
@@ -525,6 +578,8 @@ public final class BlockData {
 
         case BlockID.REDSTONE_REPEATER_OFF:
         case BlockID.REDSTONE_REPEATER_ON:
+        case BlockID.COMPARATOR_OFF:
+        case BlockID.COMPARATOR_ON:
         case BlockID.COCOA_PLANT:
         case BlockID.TRIPWIRE_HOOK:
             switch (data & 0x3) {
@@ -653,8 +708,31 @@ public final class BlockData {
                 return mod((data & 0x3) + 1, 4) | store;  // switch type with bottom bits and reapply top bits
             }
 
+        // <del>same here</del> - screw you unit tests
+        /*case BlockID.QUARTZ_BLOCK:
+            if (increment == -1 && data > 2) {
+                switch (data) {
+                case 2: return 3;
+                case 3: return 4;
+                case 4: return 2;
+                }
+            } else if (increment == 1) {
+                switch (data) {
+                case 0:
+                    return 1;
+                case 1:
+                    return 2;
+                case 2:
+                case 3:
+                case 4:
+                    return 0;
+                }
+            } else {
+                return -1;
+            }*/
+
         case BlockID.LONG_GRASS:
-        case BlockID.STONE_BRICK:
+        case BlockID.SANDSTONE:
         case BlockID.SILVERFISH_BLOCK:
             if (data > 2) return -1;
             return mod((data + increment), 3);
@@ -674,9 +752,12 @@ public final class BlockData {
         case BlockID.SPRUCE_WOOD_STAIRS:
         case BlockID.BIRCH_WOOD_STAIRS:
         case BlockID.JUNGLE_WOOD_STAIRS:
+        case BlockID.QUARTZ_STAIRS:
             if (data > 7) return -1;
             return mod((data + increment), 8);
 
+        case BlockID.STONE_BRICK:
+        case BlockID.QUARTZ_BLOCK:
         case BlockID.PUMPKIN:
         case BlockID.JACKOLANTERN:
         case BlockID.NETHER_WART:
@@ -718,16 +799,25 @@ public final class BlockData {
 
         case BlockID.FURNACE:
         case BlockID.BURNING_FURNACE:
-        case BlockID.DISPENSER:
         case BlockID.WALL_SIGN:
         case BlockID.LADDER:
         case BlockID.CHEST:
         case BlockID.ENDER_CHEST:
+        case BlockID.TRAPPED_CHEST:
             if (data < 2 || data > 5) return -1;
             return mod((data - 2 + increment), 4) + 2;
 
+        case BlockID.DISPENSER:
+        case BlockID.DROPPER:
+            store = data & 0x8;
+            data &= ~0x8;
+            if (data > 5) return -1;
+            return mod((data + increment), 6) | store;
+
         case BlockID.REDSTONE_REPEATER_OFF:
         case BlockID.REDSTONE_REPEATER_ON:
+        case BlockID.COMPARATOR_OFF:
+        case BlockID.COMPARATOR_ON:
         case BlockID.TRAP_DOOR:
         case BlockID.FENCE_GATE:
         case BlockID.LEAVES:
