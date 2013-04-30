@@ -480,6 +480,9 @@ public class WorldEdit {
                                     case NETHER_BRICK:
                                         data = 6;
                                         break;
+                                    case QUARTZ_BLOCK:
+                                        data = 7;
+                                        break;
 
                                     default:
                                         throw new InvalidItemException(arg, "Invalid step type '" + typeAndData[1] + "'");
@@ -1400,6 +1403,8 @@ public class WorldEdit {
             } catch (CommandUsageException e) {
                 player.printError(e.getMessage());
                 player.printError(e.getUsage());
+            } catch (PlayerNeededException e) {
+                player.printError(e.getMessage());
             } catch (WrappedCommandException e) {
                 throw e.getCause();
             } catch (UnhandledCommandException e) {
