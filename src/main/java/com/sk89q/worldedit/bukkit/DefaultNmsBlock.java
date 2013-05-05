@@ -63,25 +63,6 @@ import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.blocks.TileEntityBlock;
 import com.sk89q.worldedit.data.DataException;
 import com.sk89q.worldedit.foundation.Block;
-
-/**
- * A blind handler of blocks with TileEntity data that directly access Minecraft's
- * classes through CraftBukkit.
- * </p>
- * Usage of this class may break terribly in the future, and therefore usage should
- * be trapped in a handler for {@link Throwable}.
- */
-public class DefaultNmsBlock extends NmsBlock {
-
-    private static final Logger logger = WorldEdit.logger;
-    private static Field compoundMapField;
-    private static final Field nmsBlock_isTileEntityField; // The field is deobfuscated but the method isn't. No idea why.
-    private NBTTagCompound nbtData = null;
-
-    static {
-        Field field;
-        try {
-
 import com.sk89q.jnbt.ByteArrayTag;
 import com.sk89q.jnbt.ByteTag;
 import com.sk89q.jnbt.CompoundTag;
