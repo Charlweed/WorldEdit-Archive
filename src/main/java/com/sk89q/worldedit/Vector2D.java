@@ -24,6 +24,11 @@ package com.sk89q.worldedit;
  * @author sk89q
  */
 public class Vector2D {
+    public static final Vector2D ZERO = new Vector2D(0, 0);
+    public static final Vector2D UNIT_X = new Vector2D(1, 0);
+    public static final Vector2D UNIT_Z = new Vector2D(0, 1);
+    public static final Vector2D ONE = new Vector2D(1, 1);
+
     protected final double x, z;
 
     /**
@@ -159,7 +164,6 @@ public class Vector2D {
      * Adds two points.
      *
      * @param x
-     * @param y
      * @param z
      * @return New point
      */
@@ -171,7 +175,6 @@ public class Vector2D {
      * Adds two points.
      *
      * @param x
-     * @param y
      * @param z
      * @return New point
      */
@@ -209,7 +212,6 @@ public class Vector2D {
      * Subtract two points.
      *
      * @param x
-     * @param y
      * @param z
      * @return New point
      */
@@ -221,7 +223,6 @@ public class Vector2D {
      * Subtract two points.
      *
      * @param x
-     * @param y
      * @param z
      * @return New point
      */
@@ -259,7 +260,6 @@ public class Vector2D {
      * Component-wise multiplication
      *
      * @param x
-     * @param y
      * @param z
      * @return New point
      */
@@ -271,7 +271,6 @@ public class Vector2D {
      * Component-wise multiplication
      *
      * @param x
-     * @param y
      * @param z
      * @return New point
      */
@@ -339,7 +338,6 @@ public class Vector2D {
      * Component-wise division
      *
      * @param x
-     * @param y
      * @param z
      * @return New point
      */
@@ -351,7 +349,6 @@ public class Vector2D {
      * Component-wise division
      *
      * @param x
-     * @param y
      * @param z
      * @return New point
      */

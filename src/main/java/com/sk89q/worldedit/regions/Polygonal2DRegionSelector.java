@@ -19,7 +19,6 @@
 
 package com.sk89q.worldedit.regions;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import com.sk89q.worldedit.BlockVector;
@@ -44,6 +43,7 @@ public class Polygonal2DRegionSelector implements RegionSelector, CUIRegion {
     private BlockVector pos1;
     private Polygonal2DRegion region;
 
+    @Deprecated
     public Polygonal2DRegionSelector(LocalWorld world) {
         this(world, 50);
     }
@@ -53,6 +53,7 @@ public class Polygonal2DRegionSelector implements RegionSelector, CUIRegion {
         region = new Polygonal2DRegion(world);
     }
 
+    @Deprecated
     public Polygonal2DRegionSelector(RegionSelector oldSelector) {
         this(oldSelector, 50);
     }
@@ -72,20 +73,12 @@ public class Polygonal2DRegionSelector implements RegionSelector, CUIRegion {
                 return;
             }
 
-            BlockVector min = oldRegion.getMinimumPoint().toBlockVector();
-            BlockVector max = oldRegion.getMaximumPoint().toBlockVector();
+            final int minY = oldRegion.getMinimumPoint().getBlockY();
+            final int maxY = oldRegion.getMaximumPoint().getBlockY();
 
-            int minY = min.getBlockY();
-            int maxY = max.getBlockY();
+            List<BlockVector2D> points = oldRegion.polygonize(maxPoints);
 
-            List<BlockVector2D> points = new ArrayList<BlockVector2D>(4);
-
-            points.add(new BlockVector2D(min.getX(), min.getZ()));
-            points.add(new BlockVector2D(min.getX(), max.getZ()));
-            points.add(new BlockVector2D(max.getX(), max.getZ()));
-            points.add(new BlockVector2D(max.getX(), min.getZ()));
-
-            pos1 = min;
+            pos1 = points.get(0).toVector(minY).toBlockVector();
             region = new Polygonal2DRegion(oldRegion.getWorld(), points, minY, maxY);
         }
     }
@@ -118,7 +111,7 @@ public class Polygonal2DRegionSelector implements RegionSelector, CUIRegion {
                 return false;
             }
 
-            if (maxPoints > -1 && points.size() >= maxPoints) {
+            if (maxPoints >= 0 && points.size() > maxPoints) {
                 return false;
             }
         }

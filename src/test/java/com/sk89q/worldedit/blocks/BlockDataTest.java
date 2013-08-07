@@ -34,6 +34,9 @@ public class BlockDataTest {
     @Test
     public void testRotateFlip() {
         for (int type = 0; type < 256; ++type) {
+            if (type == BlockID.HAY_BLOCK) {
+                continue; // not monotonous
+            }
             for (int data = 0; data < 16; ++data) {
                 final String message = type + "/" + data;
 
@@ -73,19 +76,26 @@ public class BlockDataTest {
 
     @Test
     public void testCycle() {
-        // Test monotony
+        // Test monotony and continuity
         for (int type = 0; type < 256; ++type) {
-            if (type == BlockID.CLOTH) continue;
+            // Cloth isn't monotonous, and thus excluded.
+            if (type == BlockID.CLOTH
+                    || type == BlockID.STAINED_CLAY
+                    || type == BlockID.CARPET) {
+                continue;
+            }
 
             for (int data = 0; data < 16; ++data) {
                 final String message = type + "/" + data;
 
                 final int cycled = BlockData.cycle(type, data, 1);
 
+                // If the cycle goes back (including -1), everything is ok.
                 if (cycled <= data) {
                     continue;
                 }
 
+                // If there's a gap in the cycle, there's a problem.
                 assertEquals(message, data + 1, cycled);
             }
         }
@@ -98,6 +108,7 @@ public class BlockDataTest {
     }
 
     private static void testCycle(final int increment) {
+        // Iterate each block type and data value that wasn't part of a cycle yet.
         for (int type = 0; type < 256; ++type) {
             @SuppressWarnings("unchecked")
             final TreeSet<Integer> datas = (TreeSet<Integer>) datasTemplate.clone();
@@ -108,12 +119,21 @@ public class BlockDataTest {
                 boolean first = true;
                 while (true) {
                     current = BlockData.cycle(type, current, increment);
+
+                    // If the cycle immediately goes to -1, everything is ok.
                     if (first && current == -1) break;
+
                     first = false;
                     message += "->" + current;
+
+                    // If the cycle goes off limits (including -1), there's a problem.
                     assertTrue(message, current >= 0);
                     assertTrue(message, current < 16);
+
+                    // The cycle completes, everything is ok.
                     if (current == start) break;
+
+                    // Mark the current element as walked.
                     assertTrue(message, datas.remove(current));
                 }
             }
