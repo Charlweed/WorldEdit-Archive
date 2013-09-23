@@ -19,6 +19,7 @@
 package com.sk89q.worldedit;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
@@ -534,6 +535,18 @@ public class EditSession {
         return countBlocks(region, passOn);
     }
 
+    private static boolean containsFuzzy(Collection<BaseBlock> collection, Object o) {
+        // allow -1 data in the searchBlocks to match any type
+        for (BaseBlock b : collection) {
+            if (o instanceof BaseBlock) {
+                if (b.equalsFuzzy((BaseBlock) o)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     /**
      * Count the number of blocks of a list of types in a region.
      *
@@ -543,22 +556,6 @@ public class EditSession {
      */
     public int countBlocks(Region region, Set<BaseBlock> searchBlocks) {
         int count = 0;
-
-        // allow -1 data in the searchBlocks to match any type
-        Set<BaseBlock> newSet = new HashSet<BaseBlock>() {
-            @Override
-            public boolean contains(Object o) {
-                for (BaseBlock b : this.toArray(new BaseBlock[this.size()])) {
-                    if (o instanceof BaseBlock) {
-                        if (b.equalsFuzzy((BaseBlock) o)) {
-                            return true;
-                        }
-                    }
-                }
-                return false;
-            }
-        };
-        newSet.addAll(searchBlocks);
 
         if (region instanceof CuboidRegion) {
             // Doing this for speed
@@ -578,7 +575,7 @@ public class EditSession {
                         Vector pt = new Vector(x, y, z);
 
                         BaseBlock compare = new BaseBlock(getBlockType(pt), getBlockData(pt));
-                        if (newSet.contains(compare)) {
+                        if (containsFuzzy(searchBlocks, compare)) {
                             ++count;
                         }
                     }
@@ -587,7 +584,7 @@ public class EditSession {
         } else {
             for (Vector pt : region) {
                 BaseBlock compare = new BaseBlock(getBlockType(pt), getBlockData(pt));
-                if (newSet.contains(compare)) {
+                if (containsFuzzy(searchBlocks, compare)) {
                     ++count;
                 }
             }
@@ -2811,10 +2808,15 @@ public class EditSession {
         final RValue typeVariable = expression.getVariable("type", false);
         final RValue dataVariable = expression.getVariable("data", false);
 
+        final WorldEditExpressionEnvironment environment = new WorldEditExpressionEnvironment(this, unit, zero);
+        expression.setEnvironment(environment);
+
         final ArbitraryShape shape = new ArbitraryShape(region) {
             @Override
             protected BaseBlock getMaterial(int x, int y, int z, BaseBlock defaultMaterial) {
-                final Vector scaled = new Vector(x, y, z).subtract(zero).divide(unit);
+                final Vector current = new Vector(x, y, z);
+                environment.setCurrentBlock(current);
+                final Vector scaled = current.subtract(zero).divide(unit);
 
                 try {
                     if (expression.evaluate(scaled.getX(), scaled.getY(), scaled.getZ(), defaultMaterial.getType(), defaultMaterial.getData()) <= 0) {
@@ -2840,7 +2842,8 @@ public class EditSession {
         final RValue y = expression.getVariable("y", false);
         final RValue z = expression.getVariable("z", false);
 
-        Vector zero2 = zero.add(0.5, 0.5, 0.5);
+        final WorldEditExpressionEnvironment environment = new WorldEditExpressionEnvironment(this, unit, zero);
+        expression.setEnvironment(environment);
 
         final DoubleArrayList<BlockVector, BaseBlock> queue = new DoubleArrayList<BlockVector, BaseBlock>(false);
 
@@ -2851,13 +2854,11 @@ public class EditSession {
             // transform
             expression.evaluate(scaled.getX(), scaled.getY(), scaled.getZ());
 
-            final Vector sourceScaled = new Vector(x.getValue(), y.getValue(), z.getValue());
-
-            // unscale, unoffset, round-nearest
-            final BlockVector sourcePosition = sourceScaled.multiply(unit).add(zero2).toBlockPoint();
+            final BlockVector sourcePosition = environment.toWorld(scaled.getX(), scaled.getY(), scaled.getZ());
 
             // read block from world
-            BaseBlock material = new BaseBlock(world.getBlockType(sourcePosition), world.getBlockData(sourcePosition));
+            // TODO: use getBlock here once the reflection is out of the way
+            final BaseBlock material = new BaseBlock(world.getBlockType(sourcePosition), world.getBlockData(sourcePosition));
 
             // queue operation
             queue.put(position, material);
