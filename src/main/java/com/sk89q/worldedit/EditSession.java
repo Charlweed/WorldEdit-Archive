@@ -19,6 +19,7 @@
 package com.sk89q.worldedit;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
@@ -82,6 +83,12 @@ public class EditSession {
      * Stores the current blocks.
      */
     private DoubleArrayList<BlockVector, BaseBlock> current =
+            new DoubleArrayList<BlockVector, BaseBlock>(false);
+
+    /**
+     * Blocks that should be placed normally.
+     */
+    private DoubleArrayList<BlockVector, BaseBlock> queue =
             new DoubleArrayList<BlockVector, BaseBlock>(false);
 
     /**
@@ -323,25 +330,30 @@ public class EditSession {
      * @return
      */
     public boolean smartSetBlock(Vector pt, BaseBlock block) {
-        if (queued) {
-            if (BlockType.shouldPlaceLast(block.getType())) {
-                // Place torches, etc. last
-                queueLast.put(pt.toBlockVector(), block);
-                return !(getBlockType(pt) == block.getType() && getBlockData(pt) == block.getData());
-            } else if (BlockType.shouldPlaceFinal(block.getType())) {
-                // Place signs, reed, etc even later
-                queueFinal.put(pt.toBlockVector(), block);
-                return !(getBlockType(pt) == block.getType() && getBlockData(pt) == block.getData());
-            } else if (BlockType.shouldPlaceLast(getBlockType(pt))) {
-                // Destroy torches, etc. first
-                rawSetBlock(pt, new BaseBlock(BlockID.AIR));
-            } else {
-                queueAfter.put(pt.toBlockVector(), block);
-                return !(getBlockType(pt) == block.getType() && getBlockData(pt) == block.getData());
-            }
+        if (!queued) {
+            return rawSetBlock(pt, block);
         }
 
-        return rawSetBlock(pt, block);
+        final int oldBlockType = getBlockType(pt);
+        final int newBlockType = block.getType();
+        final boolean ret = oldBlockType != newBlockType || getBlockData(pt) != block.getData();
+
+        if (BlockType.shouldPlaceLast(newBlockType)) {
+            // Place torches, etc. last
+            queueLast.put(pt.toBlockVector(), block);
+        } else if (BlockType.shouldPlaceFinal(newBlockType)) {
+            // Place signs, reed, etc even later
+            queueFinal.put(pt.toBlockVector(), block);
+        } else if (BlockType.shouldPlaceLast(oldBlockType)) {
+            // Destroy torches, etc. first
+            rawSetBlock(pt, new BaseBlock(BlockID.AIR)); // TODO: why isn't this done in all cases
+
+            queue.put(pt.toBlockVector(), block);
+        } else {
+            queueAfter.put(pt.toBlockVector(), block);
+        }
+
+        return ret;
     }
 
     /**
@@ -702,13 +714,16 @@ public class EditSession {
 
         final Set<BlockVector2D> dirtyChunks = new HashSet<BlockVector2D>();
 
-        for (Map.Entry<BlockVector, BaseBlock> entry : queueAfter) {
-            BlockVector pt = entry.getKey();
-            rawSetBlock(pt, entry.getValue());
+        //noinspection unchecked
+        for (DoubleArrayList<BlockVector, BaseBlock> currentQueue : Arrays.asList(queue, queueAfter)) {
+            for (Map.Entry<BlockVector, BaseBlock> entry : currentQueue) {
+                BlockVector pt = entry.getKey();
+                rawSetBlock(pt, entry.getValue());
 
-            // TODO: use ChunkStore.toChunk(pt) after optimizing it.
-            if (fastMode) {
-                dirtyChunks.add(new BlockVector2D(pt.getBlockX() >> 4, pt.getBlockZ() >> 4));
+                // TODO: use ChunkStore.toChunk(pt) after optimizing it.
+                if (fastMode) {
+                    dirtyChunks.add(new BlockVector2D(pt.getBlockX() >> 4, pt.getBlockZ() >> 4));
+                }
             }
         }
 
@@ -796,6 +811,7 @@ public class EditSession {
 
         if (!dirtyChunks.isEmpty()) world.fixAfterFastMode(dirtyChunks);
 
+        queue.clear();
         queueAfter.clear();
         queueLast.clear();
         queueFinal.clear();
