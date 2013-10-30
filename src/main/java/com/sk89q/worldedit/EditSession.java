@@ -19,6 +19,7 @@
 package com.sk89q.worldedit;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
@@ -46,6 +47,8 @@ import com.sk89q.worldedit.patterns.Pattern;
 import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.regions.RegionOperationException;
+import com.sk89q.worldedit.shape.ArbitraryShape;
+import com.sk89q.worldedit.shape.WorldEditExpressionEnvironment;
 import com.sk89q.worldedit.util.TreeGenerator;
 
 /**
@@ -80,6 +83,12 @@ public class EditSession {
      * Stores the current blocks.
      */
     private DoubleArrayList<BlockVector, BaseBlock> current =
+            new DoubleArrayList<BlockVector, BaseBlock>(false);
+
+    /**
+     * Blocks that should be placed normally.
+     */
+    private DoubleArrayList<BlockVector, BaseBlock> queue =
             new DoubleArrayList<BlockVector, BaseBlock>(false);
 
     /**
@@ -264,7 +273,7 @@ public class EditSession {
         }
         // }
 
-        current.put(pt.toBlockVector(), block);
+        current.put(blockPt, block);
 
         return smartSetBlock(pt, block);
     }
@@ -321,25 +330,30 @@ public class EditSession {
      * @return
      */
     public boolean smartSetBlock(Vector pt, BaseBlock block) {
-        if (queued) {
-            if (BlockType.shouldPlaceLast(block.getType())) {
-                // Place torches, etc. last
-                queueLast.put(pt.toBlockVector(), block);
-                return !(getBlockType(pt) == block.getType() && getBlockData(pt) == block.getData());
-            } else if (BlockType.shouldPlaceFinal(block.getType())) {
-                // Place signs, reed, etc even later
-                queueFinal.put(pt.toBlockVector(), block);
-                return !(getBlockType(pt) == block.getType() && getBlockData(pt) == block.getData());
-            } else if (BlockType.shouldPlaceLast(getBlockType(pt))) {
-                // Destroy torches, etc. first
-                rawSetBlock(pt, new BaseBlock(BlockID.AIR));
-            } else {
-                queueAfter.put(pt.toBlockVector(), block);
-                return !(getBlockType(pt) == block.getType() && getBlockData(pt) == block.getData());
-            }
+        if (!queued) {
+            return rawSetBlock(pt, block);
         }
 
-        return rawSetBlock(pt, block);
+        final int oldBlockType = getBlockType(pt);
+        final int newBlockType = block.getType();
+        final boolean ret = oldBlockType != newBlockType || getBlockData(pt) != block.getData();
+
+        if (BlockType.shouldPlaceLast(newBlockType)) {
+            // Place torches, etc. last
+            queueLast.put(pt.toBlockVector(), block);
+        } else if (BlockType.shouldPlaceFinal(newBlockType)) {
+            // Place signs, reed, etc even later
+            queueFinal.put(pt.toBlockVector(), block);
+        } else if (BlockType.shouldPlaceLast(oldBlockType)) {
+            // Destroy torches, etc. first
+            rawSetBlock(pt, new BaseBlock(BlockID.AIR)); // TODO: why isn't this done in all cases
+
+            queue.put(pt.toBlockVector(), block);
+        } else {
+            queueAfter.put(pt.toBlockVector(), block);
+        }
+
+        return ret;
     }
 
     /**
@@ -620,7 +634,8 @@ public class EditSession {
         for (int y = maxY; y >= minY; --y) {
             Vector pt = new Vector(x, y, z);
             int id = getBlockType(pt);
-            if (naturalOnly ? BlockType.isNaturalTerrainBlock(id) : !BlockType.canPassThrough(id)) {
+            int data = getBlockData(pt);
+            if (naturalOnly ? BlockType.isNaturalTerrainBlock(id, data) : !BlockType.canPassThrough(id, data)) {
                 return y;
             }
         }
@@ -699,13 +714,16 @@ public class EditSession {
 
         final Set<BlockVector2D> dirtyChunks = new HashSet<BlockVector2D>();
 
-        for (Map.Entry<BlockVector, BaseBlock> entry : queueAfter) {
-            BlockVector pt = entry.getKey();
-            rawSetBlock(pt, entry.getValue());
+        //noinspection unchecked
+        for (DoubleArrayList<BlockVector, BaseBlock> currentQueue : Arrays.asList(queue, queueAfter)) {
+            for (Map.Entry<BlockVector, BaseBlock> entry : currentQueue) {
+                BlockVector pt = entry.getKey();
+                rawSetBlock(pt, entry.getValue());
 
-            // TODO: use ChunkStore.toChunk(pt) after optimizing it.
-            if (fastMode) {
-                dirtyChunks.add(new BlockVector2D(pt.getBlockX() >> 4, pt.getBlockZ() >> 4));
+                // TODO: use ChunkStore.toChunk(pt) after optimizing it.
+                if (fastMode) {
+                    dirtyChunks.add(new BlockVector2D(pt.getBlockX() >> 4, pt.getBlockZ() >> 4));
+                }
             }
         }
 
@@ -793,6 +811,7 @@ public class EditSession {
 
         if (!dirtyChunks.isEmpty()) world.fixAfterFastMode(dirtyChunks);
 
+        queue.clear();
         queueAfter.clear();
         queueLast.clear();
         queueFinal.clear();
@@ -2480,6 +2499,7 @@ public class EditSession {
                 loop: for (int y = world.getMaxY(); y >= 1; --y) {
                     final Vector pt = new Vector(x, y, z);
                     final int id = getBlockType(pt);
+                    final int data = getBlockData(pt);
 
                     switch (id) {
                     case BlockID.DIRT:
@@ -2497,7 +2517,7 @@ public class EditSession {
 
                     default:
                         // ...and all non-passable blocks
-                        if (!BlockType.canPassThrough(id)) {
+                        if (!BlockType.canPassThrough(id, data)) {
                             break loop;
                         }
                     }
@@ -2971,7 +2991,7 @@ public class EditSession {
 
         while (!queue.isEmpty()) {
             final BlockVector current = queue.removeFirst();
-            if (!BlockType.canPassThrough(getBlockType(current))) {
+            if (!BlockType.canPassThrough(getBlockType(current), getBlockData(current))) {
                 continue;
             }
 
