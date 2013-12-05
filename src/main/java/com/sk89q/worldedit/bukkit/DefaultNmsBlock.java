@@ -302,8 +302,8 @@ public class DefaultNmsBlock extends NmsBlock {
         }
     }
 
-    public static net.minecraft.server.v1_7_R1.Block getNmsBlock(int type) {
-        return net.minecraft.server.v1_7_R1.Block.e(type);
+    public static net.minecraft.server.Block getNmsBlock(int type) {
+        return net.minecraft.server.Block.e(type);
     }
 
     /**
@@ -482,7 +482,7 @@ public class DefaultNmsBlock extends NmsBlock {
     }
 
     public static boolean isValidBlockType(int type) throws NoClassDefFoundError {
-        return type == 0 || (type >= 1 && net.minecraft.server.v1_7_R1.Block.e(type) != null);
+        return type == 0 || (type >= 1 && net.minecraft.server.Block.e(type) != null);
     }
 
 }
