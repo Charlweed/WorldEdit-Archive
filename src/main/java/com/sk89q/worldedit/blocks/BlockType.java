@@ -283,6 +283,39 @@ public enum BlockType {
         }
     }
 
+    private static Map<Integer, BaseBlock> itemBlockMapping = new HashMap<Integer, BaseBlock>();
+    static {
+        itemBlockMapping.put(ItemID.FLINT_AND_TINDER, new BaseBlock(BlockID.FIRE, -1));
+        itemBlockMapping.put(ItemID.STRING, new BaseBlock(BlockID.TRIPWIRE, -1));
+        itemBlockMapping.put(ItemID.SEEDS, new BaseBlock(BlockID.CROPS, -1));
+        itemBlockMapping.put(ItemID.SIGN, new BaseBlock(BlockID.SIGN_POST, -1));
+        itemBlockMapping.put(ItemID.WOODEN_DOOR_ITEM, new BaseBlock(BlockID.WOODEN_DOOR, -1));
+        itemBlockMapping.put(ItemID.WATER_BUCKET, new BaseBlock(BlockID.STATIONARY_WATER, -1));
+        itemBlockMapping.put(ItemID.LAVA_BUCKET, new BaseBlock(BlockID.STATIONARY_LAVA, -1));
+        itemBlockMapping.put(ItemID.IRON_DOOR_ITEM, new BaseBlock(BlockID.IRON_DOOR, -1));
+        itemBlockMapping.put(ItemID.REDSTONE_DUST, new BaseBlock(BlockID.REDSTONE_WIRE, -1));
+        itemBlockMapping.put(ItemID.SUGAR_CANE_ITEM, new BaseBlock(BlockID.REED, -1));
+        itemBlockMapping.put(ItemID.BED_ITEM, new BaseBlock(BlockID.BED, -1));
+        itemBlockMapping.put(ItemID.REDSTONE_REPEATER, new BaseBlock(BlockID.REDSTONE_REPEATER_OFF, -1));
+        itemBlockMapping.put(ItemID.PUMPKIN_SEEDS, new BaseBlock(BlockID.PUMPKIN_STEM, -1));
+        itemBlockMapping.put(ItemID.MELON_SEEDS, new BaseBlock(BlockID.MELON_STEM, -1));
+        itemBlockMapping.put(ItemID.NETHER_WART_SEED, new BaseBlock(BlockID.NETHER_WART, -1));
+        itemBlockMapping.put(ItemID.BREWING_STAND, new BaseBlock(BlockID.BREWING_STAND, -1));
+        itemBlockMapping.put(ItemID.CAULDRON, new BaseBlock(BlockID.CAULDRON, -1));
+        itemBlockMapping.put(ItemID.FLOWER_POT, new BaseBlock(BlockID.FLOWER_POT, -1));
+        itemBlockMapping.put(ItemID.CARROT, new BaseBlock(BlockID.CARROTS, -1));
+        itemBlockMapping.put(ItemID.POTATO, new BaseBlock(BlockID.POTATOES, -1));
+        itemBlockMapping.put(ItemID.COMPARATOR, new BaseBlock(BlockID.COMPARATOR_OFF, -1));
+
+        // These are just for fun:
+        itemBlockMapping.put(ItemID.BUCKET, new BaseBlock(BlockID.AIR, -1)); // There's nothing in the bucket, what did you expect?
+        itemBlockMapping.put(ItemID.MILK_BUCKET, new BaseBlock(BlockID.SNOW, -1)); // Whoops, spilled the milk
+    }
+
+    public static BaseBlock getBlockForItem(int typeId) {
+        return itemBlockMapping.get(typeId);
+    }
+
     /**
      * Get block numeric ID.
      *
@@ -450,7 +483,6 @@ public enum BlockType {
         canPassThrough.add(BlockID.END_PORTAL);
         canPassThrough.add(BlockID.TRIPWIRE_HOOK);
         canPassThrough.add(BlockID.TRIPWIRE);
-        canPassThrough.add(BlockID.FLOWER_POT);
         canPassThrough.add(BlockID.CARROTS);
         canPassThrough.add(BlockID.POTATOES);
         canPassThrough.add(BlockID.WOODEN_BUTTON);
@@ -1607,11 +1639,9 @@ public enum BlockType {
     private static final Map<Integer, PlayerDirection> nonDataAttachments = new HashMap<Integer, PlayerDirection>();
     static {
         nonDataAttachments.put(BlockID.SAPLING, PlayerDirection.DOWN);
-        nonDataAttachments.put(BlockID.POWERED_RAIL, PlayerDirection.DOWN);
-        nonDataAttachments.put(BlockID.DETECTOR_RAIL, PlayerDirection.DOWN);
         nonDataAttachments.put(BlockID.LONG_GRASS, PlayerDirection.DOWN);
         nonDataAttachments.put(BlockID.DEAD_BUSH, PlayerDirection.DOWN);
-        for (int offset = 0; offset <= 8; offset += 8) {
+        for (int offset = 0; offset < 16; offset += 8) {
             dataAttachments.put(typeDataKey(BlockID.PISTON_EXTENSION, offset + 0), PlayerDirection.UP);
             dataAttachments.put(typeDataKey(BlockID.PISTON_EXTENSION, offset + 1), PlayerDirection.DOWN);
             addCardinals(BlockID.PISTON_EXTENSION, offset + 2, offset + 5, offset + 3, offset + 4);
@@ -1621,7 +1651,8 @@ public enum BlockType {
         nonDataAttachments.put(BlockID.BROWN_MUSHROOM, PlayerDirection.DOWN);
         nonDataAttachments.put(BlockID.RED_MUSHROOM, PlayerDirection.DOWN);
         for (int blockId : new int[] { BlockID.TORCH, BlockID.REDSTONE_TORCH_ON, BlockID.REDSTONE_TORCH_OFF }) {
-            dataAttachments.put(typeDataKey(blockId, 5), PlayerDirection.DOWN);
+            dataAttachments.put(typeDataKey(blockId, 0), PlayerDirection.DOWN);
+            dataAttachments.put(typeDataKey(blockId, 5), PlayerDirection.DOWN); // According to the minecraft wiki, this one is history. Keeping both, for now...
             addCardinals(blockId, 4, 1, 3, 2);
         }
         nonDataAttachments.put(BlockID.REDSTONE_WIRE, PlayerDirection.DOWN);
@@ -1629,18 +1660,19 @@ public enum BlockType {
         nonDataAttachments.put(BlockID.SIGN_POST, PlayerDirection.DOWN);
         nonDataAttachments.put(BlockID.WOODEN_DOOR, PlayerDirection.DOWN);
         addCardinals(BlockID.LADDER, 2, 5, 3, 4);
-        nonDataAttachments.put(BlockID.MINECART_TRACKS, PlayerDirection.DOWN);
         addCardinals(BlockID.WALL_SIGN, 2, 5, 3, 4);
-        for (int offset = 0; offset <= 8; offset += 8) {
+        for (int offset = 0; offset < 16; offset += 8) {
             addCardinals(BlockID.LEVER, offset + 4, offset + 1, offset + 3, offset + 2);
             dataAttachments.put(typeDataKey(BlockID.LEVER, offset + 5), PlayerDirection.DOWN);
             dataAttachments.put(typeDataKey(BlockID.LEVER, offset + 6), PlayerDirection.DOWN);
+            dataAttachments.put(typeDataKey(BlockID.LEVER, offset + 7), PlayerDirection.UP);
+            dataAttachments.put(typeDataKey(BlockID.LEVER, offset + 0), PlayerDirection.UP);
         }
         nonDataAttachments.put(BlockID.STONE_PRESSURE_PLATE, PlayerDirection.DOWN);
         nonDataAttachments.put(BlockID.IRON_DOOR, PlayerDirection.DOWN);
         nonDataAttachments.put(BlockID.WOODEN_PRESSURE_PLATE, PlayerDirection.DOWN);
         // redstone torches: see torches
-        for (int offset = 0; offset <= 8; offset += 8) {
+        for (int offset = 0; offset < 16; offset += 8) {
             addCardinals(BlockID.STONE_BUTTON, offset + 4, offset + 1, offset + 3, offset + 2);
             addCardinals(BlockID.WOODEN_BUTTON, offset + 4, offset + 1, offset + 3, offset + 2);
         }
@@ -1649,7 +1681,7 @@ public enum BlockType {
         nonDataAttachments.put(BlockID.CAKE_BLOCK, PlayerDirection.DOWN);
         nonDataAttachments.put(BlockID.REDSTONE_REPEATER_OFF, PlayerDirection.DOWN);
         nonDataAttachments.put(BlockID.REDSTONE_REPEATER_ON, PlayerDirection.DOWN);
-        for (int offset = 0; offset <= 4; offset += 4) {
+        for (int offset = 0; offset < 16; offset += 4) {
             addCardinals(BlockID.TRAP_DOOR, offset + 0, offset + 3, offset + 1, offset + 2);
         }
         nonDataAttachments.put(BlockID.PUMPKIN_STEM, PlayerDirection.DOWN);
@@ -1658,10 +1690,10 @@ public enum BlockType {
         dataAttachments.put(typeDataKey(BlockID.VINE, 0), PlayerDirection.UP);
         addCardinals(BlockID.VINE, 1, 2, 4, 8);
         nonDataAttachments.put(BlockID.NETHER_WART, PlayerDirection.DOWN);
-        for (int offset = 0; offset <= 4; offset += 4) {
+        for (int offset = 0; offset < 16; offset += 4) {
             addCardinals(BlockID.COCOA_PLANT, offset + 0, offset + 1, offset + 2, offset + 3);
         }
-        for (int offset = 0; offset <= 4; offset += 4) {
+        for (int offset = 0; offset < 16; offset += 4) {
             addCardinals(BlockID.TRIPWIRE_HOOK, offset + 2, offset + 3, offset + 0, offset + 1);
         }
         nonDataAttachments.put(BlockID.TRIPWIRE, PlayerDirection.DOWN);
@@ -1673,8 +1705,16 @@ public enum BlockType {
         nonDataAttachments.put(BlockID.PRESSURE_PLATE_HEAVY, PlayerDirection.DOWN);
         nonDataAttachments.put(BlockID.COMPARATOR_OFF, PlayerDirection.DOWN);
         nonDataAttachments.put(BlockID.COMPARATOR_ON, PlayerDirection.DOWN);
-        nonDataAttachments.put(BlockID.ACTIVATOR_RAIL, PlayerDirection.DOWN);
         nonDataAttachments.put(BlockID.CARPET, PlayerDirection.DOWN);
+
+        // Rails are hardcoded to be attached to the block below them.
+        // In addition to that, let's attach ascending rails to the block they're ascending towards.
+        for (int offset = 0; offset < 16; offset += 8) {
+            addCardinals(BlockID.POWERED_RAIL, offset + 3, offset + 4, offset + 2, offset + 5);
+            addCardinals(BlockID.DETECTOR_RAIL, offset + 3, offset + 4, offset + 2, offset + 5);
+            addCardinals(BlockID.MINECART_TRACKS, offset + 3, offset + 4, offset + 2, offset + 5);
+            addCardinals(BlockID.ACTIVATOR_RAIL, offset + 3, offset + 4, offset + 2, offset + 5);
+        }
     }
 
     /**

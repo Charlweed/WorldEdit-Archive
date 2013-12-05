@@ -781,6 +781,19 @@ public class EditSession {
                                 walked.addFirst(upperBlock);
                             }
                         }
+                        break;
+
+                    case BlockID.MINECART_TRACKS:
+                    case BlockID.POWERED_RAIL:
+                    case BlockID.DETECTOR_RAIL:
+                    case BlockID.ACTIVATOR_RAIL:
+                        // Here, rails are hardcoded to be attached to the block below them.
+                        // They're also attached to the block they're ascending towards via BlockType.getAttachment.
+                        BlockVector lowerBlock = current.add(0, -1, 0).toBlockVector();
+                        if (blocks.contains(lowerBlock) && !walked.contains(lowerBlock)) {
+                            walked.addFirst(lowerBlock);
+                        }
+                        break;
                     }
 
                     final PlayerDirection attachment = BlockType.getAttachment(type, data);
@@ -1670,7 +1683,20 @@ public class EditSession {
      * @throws MaxChangedBlocksException
      */
     public int makeWalls(final Region region, Pattern pattern) throws MaxChangedBlocksException {
-        return new RegionShape(region).generate(this, pattern, true, true);
+        final int minY = region.getMinimumPoint().getBlockY();
+        final int maxY = region.getMaximumPoint().getBlockY();
+        final ArbitraryShape shape = new RegionShape(region) {
+            @Override
+            protected BaseBlock getMaterial(int x, int y, int z, BaseBlock defaultMaterial) {
+                if (y > maxY || y < minY) {
+                    // Put holes into the floor and ceiling by telling ArbitraryShape that the shape goes on outside the region
+                    return defaultMaterial;
+                }
+
+                return super.getMaterial(x, y, z, defaultMaterial);
+            }
+        };
+        return shape.generate(this, pattern, true);
     }
 
     /**
@@ -2903,7 +2929,7 @@ public class EditSession {
             // transform
             expression.evaluate(scaled.getX(), scaled.getY(), scaled.getZ());
 
-            final BlockVector sourcePosition = environment.toWorld(scaled.getX(), scaled.getY(), scaled.getZ());
+            final BlockVector sourcePosition = environment.toWorld(x.getValue(), y.getValue(), z.getValue());
 
             // read block from world
             // TODO: use getBlock here once the reflection is out of the way
