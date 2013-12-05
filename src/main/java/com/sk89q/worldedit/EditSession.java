@@ -20,7 +20,6 @@ package com.sk89q.worldedit;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
@@ -554,18 +553,6 @@ public class EditSession {
         return countBlocks(region, passOn);
     }
 
-    private static boolean containsFuzzy(Collection<BaseBlock> collection, Object o) {
-        // allow -1 data in the searchBlocks to match any type
-        for (BaseBlock b : collection) {
-            if (o instanceof BaseBlock) {
-                if (b.equalsFuzzy((BaseBlock) o)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
     /**
      * Count the number of blocks of a list of types in a region.
      *
@@ -594,7 +581,7 @@ public class EditSession {
                         Vector pt = new Vector(x, y, z);
 
                         BaseBlock compare = new BaseBlock(getBlockType(pt), getBlockData(pt));
-                        if (containsFuzzy(searchBlocks, compare)) {
+                        if (BaseBlock.containsFuzzy(searchBlocks, compare)) {
                             ++count;
                         }
                     }
@@ -603,7 +590,7 @@ public class EditSession {
         } else {
             for (Vector pt : region) {
                 BaseBlock compare = new BaseBlock(getBlockType(pt), getBlockData(pt));
-                if (containsFuzzy(searchBlocks, compare)) {
+                if (BaseBlock.containsFuzzy(searchBlocks, compare)) {
                     ++count;
                 }
             }
