@@ -2520,8 +2520,24 @@ public class EditSession {
      * @param radius
      * @return number of blocks affected
      * @throws MaxChangedBlocksException
+     * @deprecated Use {@link #green(Vector, double, boolean)}.
      */
+    @Deprecated
     public int green(Vector pos, double radius)
+            throws MaxChangedBlocksException {
+        return green(pos, radius, true);
+    }
+
+    /**
+     * Green.
+     *
+     * @param pos
+     * @param radius
+     * @param onlyNormalDirt only affect normal dirt (data value 0)
+     * @return number of blocks affected
+     * @throws MaxChangedBlocksException
+     */
+    public int green(Vector pos, double radius, boolean onlyNormalDirt)
             throws MaxChangedBlocksException {
         int affected = 0;
         final double radiusSq = radius * radius;
@@ -2546,6 +2562,10 @@ public class EditSession {
 
                     switch (id) {
                     case BlockID.DIRT:
+                        if (onlyNormalDirt && data != 0) {
+                            break loop;
+                        }
+
                         if (setBlock(pt, grass)) {
                             ++affected;
                         }
@@ -2736,6 +2756,8 @@ public class EditSession {
                         treeGenerator.generate(this, new Vector(x, y + 1, z));
                         ++affected;
                         break;
+                    } else if (t == BlockID.SNOW) {
+                        setBlock(new Vector(x, y, z), new BaseBlock(BlockID.AIR));
                     } else if (t != BlockID.AIR) { // Trees won't grow on this!
                         break;
                     }
