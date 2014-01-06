@@ -116,7 +116,7 @@
     <dependency> <!-- Bukkit implementation -->
       <groupId>org.bukkit</groupId>
       <artifactId>bukkit</artifactId>
-      <version>1.7.2-R0.2</version>
+      <version>1.7.2-R0.3-SNAPSHOT</version>
       <scope>compile</scope>
       <type>jar</type>
       <optional>true</optional>
@@ -125,7 +125,7 @@
     <dependency> <!-- NMS blocks -->
       <groupId>org.bukkit</groupId>
       <artifactId>craftbukkit</artifactId>
-      <version>1.7.2-R0.1-SNAPSHOT</version>
+      <version>1.7.2-R0.3-SNAPSHOT</version>
       <scope>compile</scope>
       <type>jar</type>
       <optional>true</optional>
@@ -229,7 +229,7 @@
         </executions>
       </plugin>
 
-      <plugin>
+      <!--plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
         <version>1.7.1</version>
@@ -248,7 +248,7 @@
             </configuration>
           </execution>
         </executions>
-      </plugin>
+      </plugin-->
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
