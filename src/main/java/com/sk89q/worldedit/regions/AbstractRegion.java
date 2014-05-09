@@ -1,44 +1,39 @@
-// $Id$
 /*
- * WorldEdit
- * Copyright (C) 2010, 2011 sk89q <http://www.sk89q.com> and contributors
+ * WorldEdit, a Minecraft world manipulation toolkit
+ * Copyright (C) sk89q <http://www.sk89q.com>
+ * Copyright (C) WorldEdit team and contributors
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
+ * This program is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by the
+ * Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
 
 package com.sk89q.worldedit.regions;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
-import com.sk89q.worldedit.BlockVector;
-import com.sk89q.worldedit.BlockVector2D;
-import com.sk89q.worldedit.LocalWorld;
+import com.sk89q.worldedit.*;
 import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.Vector2D;
-import com.sk89q.worldedit.data.ChunkStore;
+import com.sk89q.worldedit.regions.iterator.RegionIterator;
+import com.sk89q.worldedit.world.World;
+import com.sk89q.worldedit.world.storage.ChunkStore;
+
+import java.util.*;
 
 public abstract class AbstractRegion implements Region {
     /**
      * Stores the world.
      */
-    protected LocalWorld world;
+    protected World world;
 
-    public AbstractRegion(LocalWorld world) {
+    public AbstractRegion(World world) {
         this.world = world;
     }
 
@@ -52,23 +47,33 @@ public abstract class AbstractRegion implements Region {
      *
      * @return iterator of points inside the region
      */
+    @Override
     public Iterator<BlockVector> iterator() {
         return new RegionIterator(this);
     }
 
-    public LocalWorld getWorld() {
+    @Override
+    public World getWorld() {
         return world;
     }
 
+    @Override
     public void setWorld(LocalWorld world) {
+        setWorld((World) world);
+    }
+
+    @Override
+    public void setWorld(World world) {
         this.world = world;
     }
 
+    @Override
     public void shift(Vector change) throws RegionOperationException {
         expand(change);
         contract(change);
     }
 
+    @Override
     public AbstractRegion clone() {
         try {
             return (AbstractRegion) super.clone();
@@ -101,6 +106,7 @@ public abstract class AbstractRegion implements Region {
      *
      * @return number of blocks
      */
+    @Override
     public int getArea() {
         Vector min = getMinimumPoint();
         Vector max = getMaximumPoint();
@@ -115,6 +121,7 @@ public abstract class AbstractRegion implements Region {
      *
      * @return width
      */
+    @Override
     public int getWidth() {
         Vector min = getMinimumPoint();
         Vector max = getMaximumPoint();
@@ -127,6 +134,7 @@ public abstract class AbstractRegion implements Region {
      *
      * @return height
      */
+    @Override
     public int getHeight() {
         Vector min = getMinimumPoint();
         Vector max = getMaximumPoint();
@@ -139,6 +147,7 @@ public abstract class AbstractRegion implements Region {
      *
      * @return length
      */
+    @Override
     public int getLength() {
         Vector min = getMinimumPoint();
         Vector max = getMaximumPoint();
@@ -151,6 +160,7 @@ public abstract class AbstractRegion implements Region {
      *
      * @return
      */
+    @Override
     public Set<Vector2D> getChunks() {
         final Set<Vector2D> chunks = new HashSet<Vector2D>();
 

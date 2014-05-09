@@ -1,34 +1,28 @@
-// $Id$
 /*
- * WorldEdit
- * Copyright (C) 2010 sk89q <http://www.sk89q.com> and contributors
+ * WorldEdit, a Minecraft world manipulation toolkit
+ * Copyright (C) sk89q <http://www.sk89q.com>
+ * Copyright (C) WorldEdit team and contributors
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
+ * This program is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by the
+ * Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
 
 package com.sk89q.worldedit.blocks;
 
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
-
 import com.sk89q.util.StringUtil;
 import com.sk89q.worldedit.PlayerDirection;
-import com.sk89q.worldedit.foundation.Block;
+
+import java.util.*;
 
 /**
  * Block types.
@@ -552,7 +546,7 @@ public enum BlockType {
      * @param block
      * @return
      */
-    public static boolean canPassThrough(Block block) {
+    public static boolean canPassThrough(BaseBlock block) {
         return canPassThrough(block.getId(), block.getData());
     }
 
@@ -582,8 +576,7 @@ public enum BlockType {
         for (int data = 0; data < 16; ++data) {
             if ((data & 4) != 0) {
                 centralTopLimit.put(-16*BlockID.END_PORTAL_FRAME-data, 1.0);
-            }
-            else {
+            } else {
                 centralTopLimit.put(-16*BlockID.END_PORTAL_FRAME-data, 0.8125);
             }
             centralTopLimit.put(-16*BlockID.HEAD-data, 0.75);
@@ -649,7 +642,7 @@ public enum BlockType {
      * @param block
      * @return
      */
-    public static double centralTopLimit(Block block) {
+    public static double centralTopLimit(BaseBlock block) {
         return centralTopLimit(block.getId(), block.getData());
     }
 
@@ -1053,7 +1046,7 @@ public enum BlockType {
      * @param block The block
      * @return true if the block type is naturally occuring
      */
-    public static boolean isNaturalTerrainBlock(Block block) {
+    public static boolean isNaturalTerrainBlock(BaseBlock block) {
         return isNaturalTerrainBlock(block.getId(), block.getData());
     }
 

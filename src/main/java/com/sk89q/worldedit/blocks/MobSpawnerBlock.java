@@ -1,36 +1,31 @@
-// $Id$
 /*
- * WorldEdit
- * Copyright (C) 2010 sk89q <http://www.sk89q.com> and contributors
+ * WorldEdit, a Minecraft world manipulation toolkit
+ * Copyright (C) sk89q <http://www.sk89q.com>
+ * Copyright (C) WorldEdit team and contributors
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
+ * This program is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by the
+ * Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
 
 package com.sk89q.worldedit.blocks;
 
+import com.sk89q.jnbt.*;
+import com.sk89q.worldedit.MobType;
+import com.sk89q.worldedit.world.DataException;
+import com.sk89q.worldedit.world.storage.InvalidFormatException;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import com.sk89q.jnbt.CompoundTag;
-import com.sk89q.jnbt.ListTag;
-import com.sk89q.jnbt.NBTUtils;
-import com.sk89q.jnbt.ShortTag;
-import com.sk89q.jnbt.StringTag;
-import com.sk89q.jnbt.Tag;
-import com.sk89q.worldedit.MobType;
-import com.sk89q.worldedit.data.DataException;
-import com.sk89q.worldedit.data.InvalidFormatException;
 
 /**
  * A mob spawner block.
@@ -186,28 +181,36 @@ public class MobSpawnerBlock extends BaseBlock implements TileEntityBlock {
         CompoundTag spawnDataTag = null;
         try {
             spawnCountTag = NBTUtils.getChildTag(values, "SpawnCount", ShortTag.class);
-        } catch (InvalidFormatException e) {};
+        } catch (InvalidFormatException ignored) {
+        }
         try {
             spawnRangeTag = NBTUtils.getChildTag(values, "SpawnRange", ShortTag.class);
-        } catch (InvalidFormatException e) {};
+        } catch (InvalidFormatException ignored) {
+        }
         try {
             minSpawnDelayTag = NBTUtils.getChildTag(values, "MinSpawnDelay", ShortTag.class);
-        } catch (InvalidFormatException e) {};
+        } catch (InvalidFormatException ignored) {
+        }
         try {
             maxSpawnDelayTag = NBTUtils.getChildTag(values, "MaxSpawnDelay", ShortTag.class);
-        } catch (InvalidFormatException e) {};
+        } catch (InvalidFormatException ignored) {
+        }
         try {
             maxNearbyEntitiesTag = NBTUtils.getChildTag(values, "MaxNearbyEntities", ShortTag.class);
-        } catch (InvalidFormatException e) {};
+        } catch (InvalidFormatException ignored) {
+        }
         try {
             requiredPlayerRangeTag = NBTUtils.getChildTag(values, "RequiredPlayerRange", ShortTag.class);
-        } catch (InvalidFormatException e) {};
+        } catch (InvalidFormatException ignored) {
+        }
         try {
             spawnPotentialsTag = NBTUtils.getChildTag(values, "SpawnPotentials", ListTag.class);
-        } catch (InvalidFormatException e) {};
+        } catch (InvalidFormatException ignored) {
+        }
         try {
             spawnDataTag = NBTUtils.getChildTag(values, "SpawnData", CompoundTag.class);
-        } catch (InvalidFormatException e) {};
+        } catch (InvalidFormatException ignored) {
+        }
 
         if (spawnCountTag != null) {
             this.spawnCount = spawnCountTag.getValue();

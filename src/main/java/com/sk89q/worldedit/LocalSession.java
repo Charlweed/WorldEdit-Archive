@@ -1,46 +1,46 @@
-// $Id$
 /*
- * WorldEdit
- * Copyright (C) 2010 sk89q <http://www.sk89q.com> and contributors
+ * WorldEdit, a Minecraft world manipulation toolkit
+ * Copyright (C) sk89q <http://www.sk89q.com>
+ * Copyright (C) WorldEdit team and contributors
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
+ * This program is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by the
+ * Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License
+ * for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
 
 package com.sk89q.worldedit;
 
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.TimeZone;
 import com.sk89q.jchronic.Chronic;
 import com.sk89q.jchronic.Options;
 import com.sk89q.jchronic.utils.Span;
 import com.sk89q.jchronic.utils.Time;
-import com.sk89q.worldedit.snapshots.Snapshot;
-import com.sk89q.worldedit.tools.BrushTool;
-import com.sk89q.worldedit.tools.SinglePickaxe;
-import com.sk89q.worldedit.tools.BlockTool;
-import com.sk89q.worldedit.tools.Tool;
-import com.sk89q.worldedit.bags.BlockBag;
-import com.sk89q.worldedit.cui.CUIRegion;
-import com.sk89q.worldedit.cui.CUIEvent;
-import com.sk89q.worldedit.cui.SelectionShapeEvent;
+import com.sk89q.worldedit.command.tool.BlockTool;
+import com.sk89q.worldedit.command.tool.BrushTool;
+import com.sk89q.worldedit.command.tool.SinglePickaxe;
+import com.sk89q.worldedit.command.tool.Tool;
+import com.sk89q.worldedit.extension.platform.Actor;
+import com.sk89q.worldedit.extent.inventory.BlockBag;
+import com.sk89q.worldedit.internal.cui.CUIEvent;
+import com.sk89q.worldedit.internal.cui.CUIRegion;
+import com.sk89q.worldedit.internal.cui.SelectionShapeEvent;
 import com.sk89q.worldedit.masks.Mask;
-import com.sk89q.worldedit.regions.CuboidRegionSelector;
+import com.sk89q.worldedit.regions.selector.CuboidRegionSelector;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.regions.RegionSelector;
+import com.sk89q.worldedit.session.request.Request;
+import com.sk89q.worldedit.world.World;
+import com.sk89q.worldedit.world.snapshot.Snapshot;
+
+import java.util.*;
 
 /**
  * An instance of this represents the WorldEdit session of a user. A session
@@ -177,6 +177,11 @@ public class LocalSession {
         return null;
     }
 
+    @Deprecated
+    public RegionSelector getRegionSelector(LocalWorld world) {
+        return getRegionSelector((World) world);
+    }
+
     /**
      * Get the region selector for defining the selection. If the selection
      * was defined for a different world, the old selection will be discarded.
@@ -184,7 +189,7 @@ public class LocalSession {
      * @param world
      * @return position
      */
-    public RegionSelector getRegionSelector(LocalWorld world) {
+    public RegionSelector getRegionSelector(World world) {
         if (selector.getIncompleteRegion().getWorld() == null) {
             selector = new CuboidRegionSelector(world);
         } else if (!selector.getIncompleteRegion().getWorld().equals(world)) {
@@ -205,13 +210,18 @@ public class LocalSession {
         return selector;
     }
 
+    @Deprecated
+    public void setRegionSelector(LocalWorld world, RegionSelector selector) {
+        setRegionSelector((World) world, selector);
+    }
+
     /**
      * Set the region selector.
      *
      * @param world
      * @param selector
      */
-    public void setRegionSelector(LocalWorld world, RegionSelector selector) {
+    public void setRegionSelector(World world, RegionSelector selector) {
         selector.getIncompleteRegion().setWorld(world);
         this.selector = selector;
     }
@@ -226,13 +236,18 @@ public class LocalSession {
         return selector.isDefined();
     }
 
+    @Deprecated
+    public boolean isSelectionDefined(LocalWorld world) {
+        return isSelectionDefined((World) world);
+    }
+
     /**
      * Returns true if the region is fully defined for the specified world.
      *
      * @param world
      * @return
      */
-    public boolean isSelectionDefined(LocalWorld world) {
+    public boolean isSelectionDefined(World world) {
         if (selector.getIncompleteRegion().getWorld() == null || !selector.getIncompleteRegion().getWorld().equals(world)) {
             return false;
         }
@@ -250,6 +265,11 @@ public class LocalSession {
         return selector.getRegion();
     }
 
+    @Deprecated
+    public Region getSelection(LocalWorld world) throws IncompleteRegionException {
+        return getSelection((World) world);
+    }
+
     /**
      * Get the selection region. If you change the region, you should
      * call learnRegionChanges().  If the selection is defined in
@@ -260,7 +280,7 @@ public class LocalSession {
      * @return region
      * @throws IncompleteRegionException
      */
-    public Region getSelection(LocalWorld world) throws IncompleteRegionException {
+    public Region getSelection(World world) throws IncompleteRegionException {
         if (selector.getIncompleteRegion().getWorld() == null || !selector.getIncompleteRegion().getWorld().equals(world)) {
             throw new IncompleteRegionException();
         }
@@ -272,7 +292,7 @@ public class LocalSession {
      *
      * @return
      */
-    public LocalWorld getSelectionWorld() {
+    public World getSelectionWorld() {
         return selector.getIncompleteRegion().getWorld();
     }
 
@@ -546,7 +566,7 @@ public class LocalSession {
      * @param player
      * @param event
      */
-    public void dispatchCUIEvent(LocalPlayer player, CUIEvent event) {
+    public void dispatchCUIEvent(Actor player, CUIEvent event) {
         if (hasCUISupport) {
             player.dispatchCUIEvent(event);
         }
@@ -587,7 +607,7 @@ public class LocalSession {
         }
     }
 
-    public void describeCUI(LocalPlayer player) {
+    public void describeCUI(Actor player) {
         if (!hasCUISupport) {
             return;
         }
@@ -605,10 +625,6 @@ public class LocalSession {
     }
 
     public void handleCUIInitializationMessage(String text) {
-        if (hasCUISupport()) {
-            return;
-        }
-
         String[] split = text.split("\\|");
         if (split.length > 1 && split[0].equalsIgnoreCase("v")) { // enough fields and right message
             setCUISupport(true);
@@ -650,10 +666,10 @@ public class LocalSession {
     /**
      * Sets the client's CUI protocol version
      *
-     * @param CUIVersion
+     * @param cuiVersion
      */
-    public void setCUIVersion(int CUIVersion) {
-        this.cuiVersion = CUIVersion;
+    public void setCUIVersion(int cuiVersion) {
+        this.cuiVersion = cuiVersion;
     }
 
     /**
@@ -704,6 +720,7 @@ public class LocalSession {
                 .getEditSession(player.isPlayer() ? player.getWorld() : null,
                         getBlockChangeLimit(), blockBag, player);
         editSession.setFastMode(fastMode);
+        Request.request().setEditSession(editSession);
         if (mask != null) {
             mask.prepare(this, player, null);
         }
