@@ -37,6 +37,7 @@ import java.util.logging.*;
 import java.util.regex.Matcher;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import com.sk89q.worldedit.commands.LocalCommands;
 
 /**
  * Handles the registration and invocation of commands.
@@ -109,6 +110,7 @@ public final class CommandManager {
         register(platform, ToolUtilCommands.class);
         register(platform, ToolCommands.class);
         register(platform, UtilityCommands.class);
+        platform.onCommandRegistration(LocalCommands.registerAndReturn(config.getWorkingDirectory(), commands),commands); /*Adds commands within jars in WorldEdit dir*/        
     }
 
     void unregister() {
