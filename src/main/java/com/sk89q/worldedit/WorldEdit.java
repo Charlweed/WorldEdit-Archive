@@ -92,7 +92,8 @@ public class WorldEdit {
     }
 
     private WorldEdit() {
-        server.onCommandRegistration(LocalCommands.registerAndReturn(config.getWorkingDirectory(), commands),commands); /*Adds commands within jars in WorldEdit dir*/
+//        ServerInterface server, final LocalConfiguration config;
+//        server.onCommandRegistration(LocalCommands.registerAndReturn(config.getWorkingDirectory(), commands),commands); /*Adds commands within jars in WorldEdit dir*/
     }
 
     /**

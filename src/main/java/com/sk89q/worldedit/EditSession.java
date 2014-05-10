@@ -19,7 +19,6 @@
 
 package com.sk89q.worldedit;
 
-import java.util.Arrays;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.blocks.BlockID;
 import com.sk89q.worldedit.blocks.BlockType;
@@ -84,12 +83,6 @@ import java.util.*;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.sk89q.worldedit.regions.Regions.*;
-     * Blocks that should be placed normally.
-     */
-    private DoubleArrayList<BlockVector, BaseBlock> queue =
-            new DoubleArrayList<BlockVector, BaseBlock>(false);
-
-    /**
 
 /**
  * An {@link Extent} that handles history, {@link BlockBag}s, change limits,
@@ -257,17 +250,7 @@ public class EditSession implements Extent {
      * @return whether the queue is enabled
      */
     public boolean isQueueEnabled() {
-        if (!queued) {
-            return rawSetBlock(pt, block);
-        }
-
-        final int oldBlockType = getBlockType(pt);
-        final int newBlockType = block.getType();
-        final boolean ret = oldBlockType != newBlockType || getBlockData(pt) != block.getData();
-
-        if (BlockType.shouldPlaceLast(newBlockType)) {
-
-            queue.put(pt.toBlockVector(), block);
+        return reorderExtent.isEnabled();
     }
 
     /**
@@ -571,7 +554,7 @@ public class EditSession implements Extent {
      */
     @SuppressWarnings("deprecation")
     public boolean setChanceBlockIfAir(Vector position, BaseBlock block, double probability)
-            throws MaxChangedBlocksException {
+   throws MaxChangedBlocksException {
         return Math.random() <= probability && setBlockIfAir(position, block);
     }
 
@@ -601,7 +584,6 @@ public class EditSession implements Extent {
     public void rememberChange(Vector position, BaseBlock existing, BaseBlock block) {
         changeSet.add(new BlockChange(position.toBlockVector(), existing, block));
     }
-        }
 
     /**
      * Restores all blocks to their initial state.
@@ -664,7 +646,6 @@ public class EditSession implements Extent {
             passOn.add(new BaseBlock(i, -1));
         }
         return countBlocks(region, passOn);
-        queue.clear();
     }
 
     /**
@@ -696,7 +677,7 @@ public class EditSession implements Extent {
      */
     @SuppressWarnings("deprecation")
     public int fillXZ(Vector origin, BaseBlock block, double radius, int depth, boolean recursive)
-            throws MaxChangedBlocksException {
+   throws MaxChangedBlocksException {
         return fillXZ(origin, new SingleBlockPattern(block), radius, depth, recursive);
     }
 
@@ -719,11 +700,11 @@ public class EditSession implements Extent {
         checkArgument(depth >= 1, "depth >= 1");
 
         MaskIntersection mask = new MaskIntersection(
-                new RegionMask(new EllipsoidRegion(null, origin, new Vector(radius, radius, radius))),
-                new BoundedHeightMask(
-                        Math.max(origin.getBlockY() - depth + 1, 0),
-                        Math.min(getWorld().getMaxY(), origin.getBlockY())),
-                Masks.negate(new ExistingBlockMask(this)));
+                       new RegionMask(new EllipsoidRegion(null, origin, new Vector(radius, radius, radius))),
+                       new BoundedHeightMask(
+                              Math.max(origin.getBlockY() - depth + 1, 0),
+                              Math.min(getWorld().getMaxY(), origin.getBlockY())),
+                       Masks.negate(new ExistingBlockMask(this)));
 
         // Want to replace blocks
         BlockReplace replace = new BlockReplace(this, Patterns.wrap(pattern));
@@ -918,9 +899,9 @@ public class EditSession implements Extent {
 
         Vector center = region.getCenter();
         Region centerRegion = new CuboidRegion(
-                getWorld(), // Causes clamping of Y range
-                new Vector((int) center.getX(), (int) center.getY(), (int) center.getZ()),
-                center.toBlockVector());
+                      getWorld(), // Causes clamping of Y range
+                      new Vector((int) center.getX(), (int) center.getY(), (int) center.getZ()),
+                      center.toBlockVector());
         return setBlocks(centerRegion, pattern);
     }
 
@@ -1041,7 +1022,7 @@ public class EditSession implements Extent {
 
                     return super.getMaterial(x, y, z, defaultMaterial);
                 }
-            };
+      };
             return shape.generate(this, pattern, true);
         }
     }
@@ -1149,8 +1130,8 @@ public class EditSession implements Extent {
 
         // Remove the original blocks
         com.sk89q.worldedit.function.pattern.Pattern pattern = replacement != null ?
-                new BlockPattern(replacement) :
-                new BlockPattern(new BaseBlock(BlockID.AIR));
+       new BlockPattern(replacement) :
+       new BlockPattern(new BaseBlock(BlockID.AIR));
         BlockReplace remove = new BlockReplace(this, pattern);
 
         // Copy to a buffer so we don't destroy our original before we can copy all the blocks from it
@@ -1200,9 +1181,9 @@ public class EditSession implements Extent {
         checkArgument(radius >= 0, "radius >= 0 required");
 
         MaskIntersection mask = new MaskIntersection(
-                new BoundedHeightMask(0, getWorld().getMaxY()),
-                new RegionMask(new EllipsoidRegion(null, origin, new Vector(radius, radius, radius))),
-                getWorld().createLiquidMask());
+                       new BoundedHeightMask(0, getWorld().getMaxY()),
+                       new RegionMask(new EllipsoidRegion(null, origin, new Vector(radius, radius, radius))),
+                       getWorld().createLiquidMask());
 
         BlockReplace replace = new BlockReplace(this, new BlockPattern(new BaseBlock(BlockID.AIR)));
         RecursiveVisitor visitor = new RecursiveVisitor(mask, replace);
@@ -1235,22 +1216,22 @@ public class EditSession implements Extent {
 
         // Our origins can only be liquids
         BlockMask liquidMask = new BlockMask(
-                this,
-                new BaseBlock(moving, -1),
-                new BaseBlock(stationary, -1));
+                    this,
+                    new BaseBlock(moving, -1),
+                    new BaseBlock(stationary, -1));
 
         // But we will also visit air blocks
         MaskIntersection blockMask =
-                new MaskUnion(liquidMask,
-                        new BlockMask(
-                                this,
-                                new BaseBlock(BlockID.AIR)));
+       new MaskUnion(liquidMask,
+           new BlockMask(
+               this,
+               new BaseBlock(BlockID.AIR)));
 
         // There are boundaries that the routine needs to stay in
         MaskIntersection mask = new MaskIntersection(
-                new BoundedHeightMask(0, Math.min(origin.getBlockY(), getWorld().getMaxY())),
-                new RegionMask(new EllipsoidRegion(null, origin, new Vector(radius, radius, radius))),
-                blockMask);
+                       new BoundedHeightMask(0, Math.min(origin.getBlockY(), getWorld().getMaxY())),
+                       new RegionMask(new EllipsoidRegion(null, origin, new Vector(radius, radius, radius))),
+                       blockMask);
 
         BlockReplace replace = new BlockReplace(this, new BlockPattern(new BaseBlock(stationary)));
         NonRisingVisitor visitor = new NonRisingVisitor(mask, replace);
@@ -1368,7 +1349,7 @@ public class EditSession implements Extent {
     * @param pos Center of the sphere or ellipsoid
     * @param block The block pattern to use
     * @param radius The sphere's radius
-    * @param filled If false, only a shell will be generated.
+   * @param filled If false, only a shell will be generated.
     * @return number of blocks changed
     * @throws MaxChangedBlocksException
     */
@@ -1516,7 +1497,7 @@ public class EditSession implements Extent {
      * @throws MaxChangedBlocksException
      */
     public int thaw(Vector pos, double radius)
-            throws MaxChangedBlocksException {
+   throws MaxChangedBlocksException {
         int affected = 0;
         double radiusSq = radius * radius;
 
@@ -1575,7 +1556,7 @@ public class EditSession implements Extent {
      * @throws MaxChangedBlocksException
      */
     public int simulateSnow(Vector pos, double radius)
-            throws MaxChangedBlocksException {
+   throws MaxChangedBlocksException {
         int affected = 0;
         double radiusSq = radius * radius;
 
@@ -1642,7 +1623,7 @@ public class EditSession implements Extent {
      */
     @Deprecated
     public int green(Vector pos, double radius)
-            throws MaxChangedBlocksException {
+   throws MaxChangedBlocksException {
         return green(pos, radius, true);
     }
 
@@ -1656,7 +1637,7 @@ public class EditSession implements Extent {
      * @throws MaxChangedBlocksException
      */
     public int green(Vector pos, double radius, boolean onlyNormalDirt)
-            throws MaxChangedBlocksException {
+   throws MaxChangedBlocksException {
         int affected = 0;
         final double radiusSq = radius * radius;
 
@@ -1724,9 +1705,9 @@ public class EditSession implements Extent {
 
         // In a region of the given radius
         FlatRegion region = new CuboidRegion(
-                getWorld(), // Causes clamping of Y range
-                position.add(-apothem, -5, -apothem),
-                position.add(apothem, 10, apothem));
+                    getWorld(), // Causes clamping of Y range
+                    position.add(-apothem, -5, -apothem),
+                    position.add(apothem, 10, apothem));
         double density = 0.02;
 
         GroundFunction ground = new GroundFunction(new ExistingBlockMask(this), generator);
@@ -1747,13 +1728,13 @@ public class EditSession implements Extent {
      * @throws MaxChangedBlocksException
      */
     public int makeForest(Vector basePos, int size, double density,
-            TreeGenerator treeGenerator) throws MaxChangedBlocksException {
+           TreeGenerator treeGenerator) throws MaxChangedBlocksException {
         int affected = 0;
 
         for (int x = basePos.getBlockX() - size; x <= basePos.getBlockX()
-                + size; ++x) {
+       + size; ++x) {
             for (int z = basePos.getBlockZ() - size; z <= basePos.getBlockZ()
-                    + size; ++z) {
+           + size; ++z) {
                 // Don't want to be in the ground
                 if (!getBlock(new Vector(x, basePos.getBlockY(), z)).isAir()) {
                     continue;
@@ -1927,7 +1908,7 @@ public class EditSession implements Extent {
                     return null;
                 }
             }
-        };
+       };
 
         return shape.generate(this, pattern, hollow);
     }
@@ -2068,7 +2049,7 @@ public class EditSession implements Extent {
      * @throws MaxChangedBlocksException
      */
     public int drawLine(Pattern pattern, Vector pos1, Vector pos2, double radius, boolean filled)
-            throws MaxChangedBlocksException {
+   throws MaxChangedBlocksException {
 
         Set<Vector> vset = new HashSet<Vector>();
         boolean notdrawn = true;
@@ -2139,7 +2120,7 @@ public class EditSession implements Extent {
      * @throws MaxChangedBlocksException
      */
     public int drawSpline(Pattern pattern, List<Vector> nodevectors, double tension, double bias, double continuity, double quality, double radius, boolean filled)
-            throws MaxChangedBlocksException {
+   throws MaxChangedBlocksException {
 
         Set<Vector> vset = new HashSet<Vector>();
         List<Node> nodes = new ArrayList(nodevectors.size());
@@ -2205,11 +2186,11 @@ public class EditSession implements Extent {
         for (Vector v : vset) {
             double x = v.getX(), y = v.getY(), z = v.getZ();
             if (!(vset.contains(new Vector(x + 1, y, z)) &&
-            vset.contains(new Vector(x - 1, y, z)) &&
-            vset.contains(new Vector(x, y + 1, z)) &&
-            vset.contains(new Vector(x, y - 1, z)) &&
-            vset.contains(new Vector(x, y, z + 1)) &&
-            vset.contains(new Vector(x, y, z - 1)))) {
+        vset.contains(new Vector(x - 1, y, z)) &&
+        vset.contains(new Vector(x, y + 1, z)) &&
+        vset.contains(new Vector(x, y - 1, z)) &&
+        vset.contains(new Vector(x, y, z + 1)) &&
+        vset.contains(new Vector(x, y, z - 1)))) {
                 returnset.add(v);
             }
         }
@@ -2270,18 +2251,18 @@ public class EditSession implements Extent {
                     return null;
                 }
             }
-        };
+       };
 
         return shape.generate(this, biomeType, hollow);
     }
 
     private static final Vector[] recurseDirections = {
-            PlayerDirection.NORTH.vector(),
-            PlayerDirection.EAST.vector(),
-            PlayerDirection.SOUTH.vector(),
-            PlayerDirection.WEST.vector(),
-            PlayerDirection.UP.vector(),
-            PlayerDirection.DOWN.vector(),
+   PlayerDirection.NORTH.vector(),
+   PlayerDirection.EAST.vector(),
+   PlayerDirection.SOUTH.vector(),
+   PlayerDirection.WEST.vector(),
+   PlayerDirection.UP.vector(),
+   PlayerDirection.DOWN.vector(),
     };
 
     private static final double lengthSq(double x, double y, double z) {
