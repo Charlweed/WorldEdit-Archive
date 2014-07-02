@@ -33,11 +33,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package com.sk89q.worldedit.commands;
+package com.sk89q.worldedit.extension.platform;
 
 import com.sk89q.minecraft.util.commands.Command;
 import com.sk89q.minecraft.util.commands.CommandsManager;
 import com.sk89q.worldedit.LocalPlayer;
+import com.sk89q.worldedit.util.command.fluent.DispatcherNode;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.util.Collections;
@@ -75,7 +76,7 @@ import java.util.List;
  * @author charles@hymes.name
  * @see com.sk89q.minecraft.util.commands.Command
  **/
-public class LocalCommands<T> {
+public class LocalRegistrar {
 
     private static class ClasspathJarAppender {
 
@@ -209,7 +210,7 @@ public class LocalCommands<T> {
          */
         private static final Class<?>[] URL_PARAMETER = new Class<?>[]{URL.class};
         private static final Class<?>[] CLASSNAME_PARAMETER = new Class<?>[]{String.class};
-        private static final URLClassLoader CLASS_LOADER = (URLClassLoader) LocalCommands.class.getClassLoader();
+        private static final URLClassLoader CLASS_LOADER = (URLClassLoader) LocalRegistrar.class.getClassLoader();
         private static final String FAIL_PREFIX = "Error, could not load class from URL ";
         private static final String FAIL_SUFFIX = " via local ClassLoader";
     }
@@ -345,8 +346,8 @@ public class LocalCommands<T> {
      * with {@code Command}s.
      * @see autoRegister(BukkitServerInterface, CommandsManager)
      */
-    private LocalCommands(CommandsManager<T> commandManager, File extenensionsDir) {
-        this._commandManager = commandManager;
+    private LocalRegistrar(DispatcherNode dispatcherNode, File extenensionsDir) {
+        this._dispatcherNode = dispatcherNode;
         this._extenensionsDir = extenensionsDir;
     }
 
@@ -428,7 +429,10 @@ public class LocalCommands<T> {
                     if (entryClass != null){
                         if (hasCommands(entryClass, 0)){
                             LOGGER.log(Level.INFO, "Registering " + entryClass.getName() + " as Command");
-                            _registredCommands.addAll(getCommandManager().registerAndReturn(entryClass));
+                            _dispatcherNode.group(entryClass.getSimpleName())
+                                    .describeAs("commands loaded from " + someJarURL)                          
+                                    .registerMethods(entryClass)
+                                    .parent();
                         }
                         else{
                             LOGGER.log(Level.FINE, entryName.toString() + " is not annotated as a Command");
@@ -524,16 +528,14 @@ public class LocalCommands<T> {
      * @param commandManager The CommandManager for the WorldEdit plugin.
      * @return
      */
-    public static List<Command> registerAndReturn(File wcPluginDir, CommandsManager<LocalPlayer> commandManager){
-        List<Command> result = new ArrayList<Command>();
+    public static DispatcherNode registerAndReturn(File wcPluginDir, DispatcherNode dispatcherNode){
         try {
 
             /** Logger does not support {} **/
             if (wcPluginDir.exists()){
                 LOGGER.log(Level.INFO, "Searching directory \"" + wcPluginDir.getAbsolutePath() + "\" for Commands");
-                LocalCommands<LocalPlayer> jarRegistrar = new LocalCommands<LocalPlayer>(commandManager, wcPluginDir);
+                LocalRegistrar jarRegistrar = new LocalRegistrar(dispatcherNode, wcPluginDir);
                 jarRegistrar.registerExtensionCommands();
-                result.addAll(jarRegistrar._registredCommands);
             }
             else{
                 LOGGER.log(Level.WARNING, "Plugin directory \"" + wcPluginDir.toString() + "\" does not (yet) exist.");
@@ -543,14 +545,8 @@ public class LocalCommands<T> {
         catch (RuntimeException ex) {
             LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
         }
-        return result;
+        return dispatcherNode;
      }
-    /**
-     * @return the commandManager
-     */
-    public CommandsManager<T> getCommandManager() {
-        return _commandManager;
-    }
 
     /**
      * @return the _extenensionsDir
@@ -559,15 +555,25 @@ public class LocalCommands<T> {
         return _extenensionsDir;
     }
 
-    private CommandsManager<T> _commandManager;
+    private final DispatcherNode _dispatcherNode;
+
+    /**
+     * Get the value of dispatcherNode
+     *
+     * @return the value of dispatcherNode
+     */
+    public DispatcherNode getDispatcherNode() {
+        return _dispatcherNode;
+    }
+
     private File _extenensionsDir = null;
     private static final List<URL> CLASS_URLS = new ArrayList<URL>(4);
 //    private static final Logger LOGGER = Logger.getLogger("Minecraft.WorldEdit");
-    private static final Logger LOGGER = Logger.getLogger(LocalCommands.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(LocalRegistrar.class.getName());
     private static final IsDirFilter DIR_FILTER = new IsDirFilter();
     private static final IsFileFilter FILE_FILTER = new IsFileFilter();
     private static final IsJarFilter JAR_FILTER = new IsJarFilter();
     private final ClasspathJarAppender _loaderStub = new ClasspathJarAppender();
     public static final int MAX_DEPTH = 5;
-    private List<Command> _registredCommands = new ArrayList<Command>();
+
 }

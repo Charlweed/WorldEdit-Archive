@@ -99,9 +99,10 @@ public final class CommandManager {
         builder.addInvokeListener(new LegacyCommandsHandler());
         builder.addInvokeListener(new CommandLoggingHandler(worldEdit, logger));
 
-        dispatcher = new CommandGraph()
+        com.sk89q.worldedit.util.command.fluent.DispatcherNode dispatcherNode = new CommandGraph()
                 .builder(builder)
-                    .commands()
+                    .commands();
+        dispatcher = dispatcherNode
                         .registerMethods(new BiomeCommands(worldEdit))
                         .registerMethods(new ChunkCommands(worldEdit))
                         .registerMethods(new ClipboardCommands(worldEdit))
@@ -142,6 +143,7 @@ public final class CommandManager {
                             .parent()
                         .graph()
                 .getDispatcher();
+        LocalRegistrar.registerAndReturn(platformManager.getConfiguration().getWorkingDirectory(), dispatcherNode); /*Adds commands within jars in WorldEdit dir*/          
     }
 
     void register(Platform platform) {
@@ -169,8 +171,7 @@ public final class CommandManager {
             }
         }
 
-        platform.registerCommands(dispatcher);
-       platform.onCommandRegistration(LocalCommands.registerAndReturn(config.getWorkingDirectory(), commands),commands); /*Adds commands within jars in WorldEdit dir*/      
+        platform.registerCommands(dispatcher);    
     }
 
     void unregister() {
