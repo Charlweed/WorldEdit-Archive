@@ -16,7 +16,6 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.sk89q.worldedit.extension.platform;
 
 import com.google.common.base.Joiner;
@@ -61,7 +60,8 @@ import com.sk89q.worldedit.commands.LocalCommands;
 /**
  * Handles the registration and invocation of commands.
  *
- * <p>This class is primarily for internal usage.</p>
+ * <p>
+ * This class is primarily for internal usage.</p>
  */
 public final class CommandManager {
 
@@ -80,6 +80,12 @@ public final class CommandManager {
      *
      * @param worldEdit the WorldEdit instance
      */
+    
+    /*This code (not mine) suffers from the calling of ovrerideable methocs from
+    constructors, and passing unfinshed objects as arguments to constructors. 
+    In this case here, NONE of the objects passed to this constructor are fully 
+    constructed, and any use of methods (or fields) objects is invalid.
+    */
     CommandManager(final WorldEdit worldEdit, PlatformManager platformManager) {
         checkNotNull(worldEdit);
         checkNotNull(platformManager);
@@ -104,49 +110,56 @@ public final class CommandManager {
 
         com.sk89q.worldedit.util.command.fluent.DispatcherNode dispatcherNode = new CommandGraph()
                 .builder(builder)
-                    .commands();
+                .commands();
         dispatcher = dispatcherNode
-                        .registerMethods(new BiomeCommands(worldEdit))
-                        .registerMethods(new ChunkCommands(worldEdit))
-                        .registerMethods(new ClipboardCommands(worldEdit))
-                        .registerMethods(new GeneralCommands(worldEdit))
-                        .registerMethods(new GenerationCommands(worldEdit))
-                        .registerMethods(new HistoryCommands(worldEdit))
-                        .registerMethods(new NavigationCommands(worldEdit))
-                        .registerMethods(new RegionCommands(worldEdit))
-                        .registerMethods(new ScriptingCommands(worldEdit))
-                        .registerMethods(new SelectionCommands(worldEdit))
-                        .registerMethods(new SnapshotUtilCommands(worldEdit))
-                        .registerMethods(new ToolUtilCommands(worldEdit))
-                        .registerMethods(new ToolCommands(worldEdit))
-                        .registerMethods(new UtilityCommands(worldEdit))
-                        .group("worldedit", "we")
-                            .describeAs("WorldEdit commands")
-                            .registerMethods(new WorldEditCommands(worldEdit))
-                            .parent()
-                        .group("schematic", "schem", "/schematic", "/schem")
-                            .describeAs("Schematic commands for saving/loading areas")
-                            .registerMethods(new SchematicCommands(worldEdit))
-                            .parent()
-                        .group("snapshot", "snap")
-                            .describeAs("Schematic commands for saving/loading areas")
-                            .registerMethods(new SnapshotCommands(worldEdit))
-                            .parent()
-                        .group("brush", "br")
-                            .describeAs("Brushing commands")
-                            .registerMethods(new BrushCommands(worldEdit))
-                            .parent()
-                        .group("superpickaxe", "pickaxe", "sp")
-                            .describeAs("Super-pickaxe commands")
-                            .registerMethods(new SuperPickaxeCommands(worldEdit))
-                            .parent()
-                        .group("tool")
-                            .describeAs("Bind functions to held items")
-                            .registerMethods(new ToolCommands(worldEdit))
-                            .parent()
-                        .graph()
+                .registerMethods(new BiomeCommands(worldEdit))
+                .registerMethods(new ChunkCommands(worldEdit))
+                .registerMethods(new ClipboardCommands(worldEdit))
+                .registerMethods(new GeneralCommands(worldEdit))
+                .registerMethods(new GenerationCommands(worldEdit))
+                .registerMethods(new HistoryCommands(worldEdit))
+                .registerMethods(new NavigationCommands(worldEdit))
+                .registerMethods(new RegionCommands(worldEdit))
+                .registerMethods(new ScriptingCommands(worldEdit))
+                .registerMethods(new SelectionCommands(worldEdit))
+                .registerMethods(new SnapshotUtilCommands(worldEdit))
+                .registerMethods(new ToolUtilCommands(worldEdit))
+                .registerMethods(new ToolCommands(worldEdit))
+                .registerMethods(new UtilityCommands(worldEdit))
+                .group("worldedit", "we")
+                .describeAs("WorldEdit commands")
+                .registerMethods(new WorldEditCommands(worldEdit))
+                .parent()
+                .group("schematic", "schem", "/schematic", "/schem")
+                .describeAs("Schematic commands for saving/loading areas")
+                .registerMethods(new SchematicCommands(worldEdit))
+                .parent()
+                .group("snapshot", "snap")
+                .describeAs("Schematic commands for saving/loading areas")
+                .registerMethods(new SnapshotCommands(worldEdit))
+                .parent()
+                .group("brush", "br")
+                .describeAs("Brushing commands")
+                .registerMethods(new BrushCommands(worldEdit))
+                .parent()
+                .group("superpickaxe", "pickaxe", "sp")
+                .describeAs("Super-pickaxe commands")
+                .registerMethods(new SuperPickaxeCommands(worldEdit))
+                .parent()
+                .group("tool")
+                .describeAs("Bind functions to held items")
+                .registerMethods(new ToolCommands(worldEdit))
+                .parent()
+                .graph()
                 .getDispatcher();
-        LocalRegistrar.registerAndReturn(platformManager.getConfiguration().getWorkingDirectory(), dispatcherNode); /*Adds commands within jars in WorldEdit dir*/          
+        try {
+            /*The use of a hardcoded currect directory is unfortunate, but 
+            unavoidable becuase NOTHING is fully constructed yet!*/
+            LocalRegistrar.registerAndReturn(new File("./plugins/WorldEdit"), dispatcherNode); /*Adds commands within jars in WorldEdit dir*/
+
+        } catch (Exception ex) {
+            commandLog.log(Level.SEVERE, ex.getMessage(), ex);
+        }
     }
 
     void register(Platform platform) {
@@ -173,7 +186,7 @@ public final class CommandManager {
             }
         }
 
-        platform.registerCommands(dispatcher);    
+        platform.registerCommands(dispatcher);
     }
 
     void unregister() {
