@@ -32,8 +32,15 @@ import cpw.mods.fml.common.FMLLog;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.Mod.Instance;
-import cpw.mods.fml.common.event.*;
+import cpw.mods.fml.common.event.FMLInitializationEvent;
+import cpw.mods.fml.common.event.FMLPostInitializationEvent;
+import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import cpw.mods.fml.common.event.FMLServerAboutToStartEvent;
+import cpw.mods.fml.common.event.FMLServerStartedEvent;
+import cpw.mods.fml.common.event.FMLServerStoppingEvent;
 import cpw.mods.fml.common.network.NetworkMod;
+import cpw.mods.fml.common.registry.TickRegistry;
+import cpw.mods.fml.relauncher.Side;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
@@ -84,6 +91,8 @@ public class ForgeWorldEdit {
 
         config = new ForgeConfiguration(this);
         config.load();
+
+        TickRegistry.registerTickHandler(ThreadSafeCache.getInstance(), Side.SERVER);
     }
 
     @EventHandler
@@ -97,7 +106,7 @@ public class ForgeWorldEdit {
     }
 
     @EventHandler
-    public void serverAboutToSTart(FMLServerAboutToStartEvent event) {
+    public void serverAboutToStart(FMLServerAboutToStartEvent event) {
         if (this.platform != null) {
             logger.warning("FMLServerStartingEvent occurred when FMLServerStoppingEvent hasn't");
             WorldEdit.getInstance().getPlatformManager().unregister(platform);
@@ -135,6 +144,10 @@ public class ForgeWorldEdit {
 
     @ForgeSubscribe
     public void onPlayerInteract(PlayerInteractEvent event) {
+        if (platform == null) {
+            return;
+        }
+
         if (!platform.isHookingEvents()) return; // We have to be told to catch these events
 
         if (event.useItem == Result.DENY || event.entity.worldObj.isRemote) return;

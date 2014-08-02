@@ -17,14 +17,31 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.sk89q.worldedit;
+package com.sk89q.worldedit.regions.selector.limit;
+
+import com.google.common.base.Optional;
 
 /**
- * Raised when WorldEdit is not installed.
- *
- * @author sk89q
+ * Defines limits for selections.
  */
-public class WorldEditNotInstalled extends WorldEditException {
-    private static final long serialVersionUID = -4698408698930848121L;
+public interface SelectorLimits {
+
+    /**
+     * Get the optionally defined vertex limit for polygons.
+     *
+     * <p>If one is not present, then there is no limitation.</p>
+     *
+     * @return an optional vertex limit
+     */
+    Optional<Integer> getPolygonVertexLimit();
+
+    /**
+     * Get the optionally defined vertex limit for polyhedrons.
+     *
+     * <p>If one is not present, then there is no limitation.</p>
+     *
+     * @return an optional vertex limit
+     */
+    Optional<Integer> getPolyhedronVertexLimit();
 
 }

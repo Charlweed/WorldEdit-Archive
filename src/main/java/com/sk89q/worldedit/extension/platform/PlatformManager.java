@@ -19,14 +19,25 @@
 
 package com.sk89q.worldedit.extension.platform;
 
-import com.sk89q.worldedit.*;
+import com.sk89q.worldedit.LocalConfiguration;
+import com.sk89q.worldedit.LocalSession;
+import com.sk89q.worldedit.ServerInterface;
 import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.command.tool.*;
+import com.sk89q.worldedit.WorldEdit;
+import com.sk89q.worldedit.WorldVector;
+import com.sk89q.worldedit.command.tool.BlockTool;
+import com.sk89q.worldedit.command.tool.DoubleActionBlockTool;
+import com.sk89q.worldedit.command.tool.DoubleActionTraceTool;
+import com.sk89q.worldedit.command.tool.Tool;
+import com.sk89q.worldedit.command.tool.TraceTool;
 import com.sk89q.worldedit.entity.Player;
 import com.sk89q.worldedit.event.platform.BlockInteractEvent;
+import com.sk89q.worldedit.event.platform.ConfigurationLoadEvent;
 import com.sk89q.worldedit.event.platform.Interaction;
+import com.sk89q.worldedit.event.platform.PlatformInitializeEvent;
 import com.sk89q.worldedit.event.platform.PlatformReadyEvent;
 import com.sk89q.worldedit.event.platform.PlayerInputEvent;
+import com.sk89q.worldedit.extension.platform.permission.ActorSelectorLimits;
 import com.sk89q.worldedit.internal.ServerInterfaceAdapter;
 import com.sk89q.worldedit.regions.RegionSelector;
 import com.sk89q.worldedit.util.Location;
@@ -34,8 +45,13 @@ import com.sk89q.worldedit.util.eventbus.Subscribe;
 import com.sk89q.worldedit.world.World;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -44,8 +60,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Manages registered {@link Platform}s for WorldEdit. Platforms are
  * implementations of WorldEdit.
- * </p>
- * This class is thread-safe.
+ *
+ * <p>This class is thread-safe.</p>
  */
 public class PlatformManager {
 
@@ -56,6 +72,8 @@ public class PlatformManager {
     private final List<Platform> platforms = new ArrayList<Platform>();
     private final Map<Capability, Platform> preferences = new EnumMap<Capability, Platform>(Capability.class);
     private @Nullable String firstSeenVersion;
+    private final AtomicBoolean initialized = new AtomicBoolean();
+    private final AtomicBoolean configured = new AtomicBoolean();
 
     /**
      * Create a new platform manager.
@@ -99,9 +117,9 @@ public class PlatformManager {
 
     /**
      * Unregister a platform from WorldEdit.
-     * </p>
-     * If the platform has been chosen for any capabilities, then a new
-     * platform will be found.
+     *
+     * <p>If the platform has been chosen for any capabilities, then a new
+     * platform will be found.</p>
      *
      * @param platform the platform
      */
@@ -163,6 +181,11 @@ public class PlatformManager {
                 capability.initialize(this, preferred);
             }
         }
+
+        // Fire configuration event
+        if (preferences.containsKey(Capability.CONFIGURATION) && configured.compareAndSet(false, true)) {
+            worldEdit.getEventBus().post(new ConfigurationLoadEvent(queryCapability(Capability.CONFIGURATION).getConfiguration()));
+        }
     }
 
     /**
@@ -189,8 +212,8 @@ public class PlatformManager {
 
     /**
      * Get a list of loaded platforms.
-     * </p>
-     * The returned list is a copy of the original and is mutable.
+     *
+     * <p>The returned list is a copy of the original and is mutable.</p>
      *
      * @return a list of platforms
      */
@@ -252,9 +275,9 @@ public class PlatformManager {
 
     /**
      * Get the current configuration.
-     * </p>
-     * If no platform has been registered yet, then a default configuration
-     * will be returned.
+     *
+     * <p>If no platform has been registered yet, then a default configuration
+     * will be returned.</p>
      *
      * @return the configuration
      */
@@ -276,6 +299,9 @@ public class PlatformManager {
     @Subscribe
     public void handlePlatformReady(PlatformReadyEvent event) {
         choosePreferred();
+        if (initialized.compareAndSet(false, true)) {
+            worldEdit.getEventBus().post(new PlatformInitializeEvent());
+        }
     }
 
     @SuppressWarnings("deprecation")
@@ -305,7 +331,7 @@ public class PlatformManager {
 
                     RegionSelector selector = session.getRegionSelector(player.getWorld());
 
-                    if (selector.selectPrimary(location.toVector())) {
+                    if (selector.selectPrimary(location.toVector(), ActorSelectorLimits.forActor(player))) {
                         selector.explainPrimarySelection(actor, session, vector);
                     }
 
@@ -340,7 +366,7 @@ public class PlatformManager {
                     }
 
                     RegionSelector selector = session.getRegionSelector(player.getWorld());
-                    if (selector.selectSecondary(vector)) {
+                    if (selector.selectSecondary(vector, ActorSelectorLimits.forActor(player))) {
                         selector.explainSecondarySelection(actor, session, vector);
                     }
 
@@ -365,7 +391,6 @@ public class PlatformManager {
         // Create a proxy actor with a potentially different world for
         // making changes to the world
         Player player = createProxyActor(event.getPlayer());
-        World world = player.getWorld();
 
         switch (event.getInputType()) {
             case PRIMARY: {

@@ -30,10 +30,9 @@ import java.util.*;
 
 /**
  * Helper classfor Parser. Contains processors for statements and operators.
- *
- * @author TomyLobo
  */
 public final class ParserProcessors {
+
     private static final Map<String, String> unaryOpMap = new HashMap<String, String>();
 
     private static final Map<String, String>[] binaryOpMapsLA;
@@ -113,8 +112,7 @@ public final class ParserProcessors {
 
             default:
                 Map<String, String> m = lBinaryOpMapsLA[i] = new HashMap<String, String>();
-                for (int j = 0; j < a.length; ++j) {
-                    final Object[] element = a[j];
+                for (final Object[] element : a) {
                     m.put((String) element[0], (String) element[1]);
                 }
             }
@@ -136,8 +134,7 @@ public final class ParserProcessors {
 
             default:
                 Map<String, String> m = lBinaryOpMapsRA[i] = new HashMap<String, String>();
-                for (int j = 0; j < a.length; ++j) {
-                    final Object[] element = a[j];
+                for (final Object[] element : a) {
                     m.put((String) element[0], (String) element[1]);
                 }
             }
@@ -347,4 +344,5 @@ public final class ParserProcessors {
         }
         return ret;
     }
+
 }

@@ -24,13 +24,10 @@ import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.extent.AbstractDelegateExtent;
 import com.sk89q.worldedit.extent.Extent;
-import com.sk89q.worldedit.world.World;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Applies a {@link BlockBag} to operations.
@@ -44,7 +41,6 @@ public class BlockBagExtent extends AbstractDelegateExtent {
      * Create a new instance.
      *
      * @param extent the extent
-     * @param world the world
      * @param blockBag the block bag
      */
     public BlockBagExtent(Extent extent, @Nullable BlockBag blockBag) {

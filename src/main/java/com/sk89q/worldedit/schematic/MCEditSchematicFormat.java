@@ -36,10 +36,8 @@ import java.util.Map.Entry;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
-/**
- * @author zml2008
- */
 public class MCEditSchematicFormat extends SchematicFormat {
+
     private static final int MAX_SIZE = Short.MAX_VALUE - Short.MIN_VALUE;
 
     protected MCEditSchematicFormat() {
@@ -240,26 +238,21 @@ public class MCEditSchematicFormat extends SchematicFormat {
                     blocks[index] = (byte) block.getType();
                     blockData[index] = (byte) block.getData();
 
-                    // Store TileEntity data
-                    if (block instanceof TileEntityBlock) {
-                        TileEntityBlock tileEntityBlock = block;
-
-                        // Get the list of key/values from the block
-                        CompoundTag rawTag = tileEntityBlock.getNbtData();
-                        if (rawTag != null) {
-                            Map<String, Tag> values = new HashMap<String, Tag>();
-                            for (Entry<String, Tag> entry : rawTag.getValue().entrySet()) {
-                                values.put(entry.getKey(), entry.getValue());
-                            }
-                            
-                            values.put("id", new StringTag("id", tileEntityBlock.getNbtId()));
-                            values.put("x", new IntTag("x", x));
-                            values.put("y", new IntTag("y", y));
-                            values.put("z", new IntTag("z", z));
-                            
-                            CompoundTag tileEntityTag = new CompoundTag("TileEntity", values);
-                            tileEntities.add(tileEntityTag);
+                    // Get the list of key/values from the block
+                    CompoundTag rawTag = block.getNbtData();
+                    if (rawTag != null) {
+                        Map<String, Tag> values = new HashMap<String, Tag>();
+                        for (Entry<String, Tag> entry : rawTag.getValue().entrySet()) {
+                            values.put(entry.getKey(), entry.getValue());
                         }
+
+                        values.put("id", new StringTag("id", block.getNbtId()));
+                        values.put("x", new IntTag("x", x));
+                        values.put("y", new IntTag("y", y));
+                        values.put("z", new IntTag("z", z));
+
+                        CompoundTag tileEntityTag = new CompoundTag("TileEntity", values);
+                        tileEntities.add(tileEntityTag);
                     }
                 }
             }
@@ -327,4 +320,5 @@ public class MCEditSchematicFormat extends SchematicFormat {
         }
         return expected.cast(tag);
     }
+
 }

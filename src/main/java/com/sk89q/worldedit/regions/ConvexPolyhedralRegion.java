@@ -19,6 +19,13 @@
 
 package com.sk89q.worldedit.regions;
 
+import com.sk89q.worldedit.LocalWorld;
+import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.regions.polyhedron.Edge;
+import com.sk89q.worldedit.regions.polyhedron.Triangle;
+import com.sk89q.worldedit.world.World;
+
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -26,13 +33,10 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.sk89q.worldedit.LocalWorld;
-import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.regions.polyhedron.Edge;
-import com.sk89q.worldedit.regions.polyhedron.Triangle;
-import com.sk89q.worldedit.world.World;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public class ConvexPolyhedralRegion extends AbstractRegion {
+
     /**
      * Vertices that are contained in the convex hull.
      */
@@ -71,12 +75,15 @@ public class ConvexPolyhedralRegion extends AbstractRegion {
     /**
      * Constructs an empty mesh, containing no vertices or triangles.
      *
-     * @param world
+     * @param world the world
      */
-    public ConvexPolyhedralRegion(World world) {
+    public ConvexPolyhedralRegion(@Nullable World world) {
         super(world);
     }
 
+    /**
+     * @deprecated cast {@code world} to {@link World}
+     */
     @Deprecated
     public ConvexPolyhedralRegion(LocalWorld world) {
         super(world);
@@ -116,10 +123,12 @@ public class ConvexPolyhedralRegion extends AbstractRegion {
     /**
      * Add a vertex to the region.
      *
-     * @param vertex
+     * @param vertex the vertex
      * @return true, if something changed.
      */
     public boolean addVertex(Vector vertex) {
+        checkNotNull(vertex);
+
         lastTriangle = null; // Probably not necessary
 
         if (vertices.contains(vertex)) {
@@ -268,14 +277,14 @@ public class ConvexPolyhedralRegion extends AbstractRegion {
     }
 
     @Override
-    public boolean contains(Vector pt) {
+    public boolean contains(Vector position) {
         if (!isDefined()) {
             return false;
         }
 
-        final int x = pt.getBlockX();
-        final int y = pt.getBlockY();
-        final int z = pt.getBlockZ();
+        final int x = position.getBlockX();
+        final int y = position.getBlockY();
+        final int z = position.getBlockZ();
 
         final Vector min = getMinimumPoint();
         final Vector max = getMaximumPoint();
@@ -287,7 +296,7 @@ public class ConvexPolyhedralRegion extends AbstractRegion {
         if (z < min.getBlockZ()) return false;
         if (z > max.getBlockZ()) return false;
 
-        return containsRaw(pt);
+        return containsRaw(position);
     }
 
     private boolean containsRaw(Vector pt) {
