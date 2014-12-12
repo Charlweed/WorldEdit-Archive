@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.sk89q.worldedit.bukkit.adapter;
 
 import com.sk89q.worldedit.util.io.Closer;
@@ -31,8 +32,6 @@ import java.util.jar.JarFile;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.sk89q.worldedit.bukkit.adapter.impl.CraftBukkit_v1_7_R4;
-
 /**
  * Loads Bukkit implementation adapters.
  */
@@ -47,16 +46,16 @@ public class BukkitImplLoader {
     private static final String SEARCH_PATH = SEARCH_PACKAGE.replace(".", "/");
     private static final String CLASS_SUFFIX = ".class";
 
-    private static final String LOAD_ERROR_MESSAGE
-            = "\n**********************************************\n"
-            + "** This WorldEdit version does not fully support your version of Bukkit.\n"
-            + "**\n"
-            + "** When working with blocks or undoing, chests will be empty, signs\n"
-            + "** will be blank, and so on. There will be no support for entity\n"
-            + "** and biome-related functions.\n"
-            + "**\n"
-            + "** Please see http://wiki.sk89q.com/wiki/WorldEdit/Bukkit_adapters\n"
-            + "**********************************************\n";
+    private static final String LOAD_ERROR_MESSAGE =
+            "\n**********************************************\n" +
+            "** This WorldEdit version does not fully support your version of Bukkit.\n" +
+            "**\n" +
+            "** When working with blocks or undoing, chests will be empty, signs\n" +
+            "** will be blank, and so on. There will be no support for entity\n" +
+            "** and biome-related functions.\n" +
+            "**\n" +
+            "** Please see http://wiki.sk89q.com/wiki/WorldEdit/Bukkit_adapters\n" +
+            "**********************************************\n";
 
     /**
      * Create a new instance.
@@ -94,9 +93,7 @@ public class BukkitImplLoader {
 
                 String className = jarEntry.getName().replaceAll("[/\\\\]+", ".");
 
-                if (!className.startsWith(SEARCH_PACKAGE_DOT) || jarEntry.isDirectory()) {
-                    continue;
-                }
+                if (!className.startsWith(SEARCH_PACKAGE_DOT) || jarEntry.isDirectory()) continue;
 
                 int beginIndex = 0;
                 int endIndex = className.length() - CLASS_SUFFIX.length();
@@ -109,8 +106,8 @@ public class BukkitImplLoader {
     }
 
     /**
-     * Search for classes stored as separate files available via the given class
-     * loader.
+     * Search for classes stored as separate files available via the given
+     * class loader.
      *
      * @param classLoader the class loader
      * @throws IOException thrown on error
@@ -124,7 +121,8 @@ public class BukkitImplLoader {
     }
 
     /**
-     * Search for classes stored as separate files available via the given path.
+     * Search for classes stored as separate files available via the given
+     * path.
      *
      * @param file the path
      */
@@ -153,27 +151,24 @@ public class BukkitImplLoader {
      */
     public BukkitImplAdapter loadAdapter() throws AdapterLoadException {
         for (String className : adapterCandidates) {
-            log.log(Level.INFO, "Attempting to load " + className + " as BukkitImplAdapter");
             try {
                 Class<?> cls = Class.forName(className);
                 if (BukkitImplAdapter.class.isAssignableFrom(cls)) {
-                    log.log(Level.INFO, "Loaded " + cls.getCanonicalName() + " as BukkitImplAdapter");
                     return (BukkitImplAdapter) cls.newInstance();
                 } else {
-                    log.log(Level.WARNING, "Failed to load the Bukkit adapter class '" + className
-                            + "' because it does not implement " + BukkitImplAdapter.class.getCanonicalName());
+                    log.log(Level.WARNING, "Failed to load the Bukkit adapter class '" + className +
+                            "' because it does not implement " + BukkitImplAdapter.class.getCanonicalName());
                 }
             } catch (ClassNotFoundException e) {
-                log.log(Level.WARNING, "Failed to load the Bukkit adapter class '" + className
-                        + "' that is not supposed to be missing", e);
+                log.log(Level.WARNING, "Failed to load the Bukkit adapter class '" + className +
+                        "' that is not supposed to be missing", e);
             } catch (IllegalAccessException e) {
-                log.log(Level.WARNING, "Failed to load the Bukkit adapter class '" + className
-                        + "' that is not supposed to be raising this error", e);
+                log.log(Level.WARNING, "Failed to load the Bukkit adapter class '" + className +
+                        "' that is not supposed to be raising this error", e);
             } catch (Throwable e) {
                 if (className.equals(customCandidate)) {
                     log.log(Level.WARNING, "Failed to load the Bukkit adapter class '" + className + "'", e);
                 }
-                log.log(Level.WARNING, "Failed to load the Bukkit adapter class '" + className + "'", e);
             }
         }
 

@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.sk89q.worldedit.extension.platform;
 
 import com.google.common.base.Joiner;
@@ -55,13 +56,11 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import com.sk89q.worldedit.commands.LocalCommands;
+import com.sk89q.worldedit.util.command.fluent.DispatcherNode;
 
 /**
  * Handles the registration and invocation of commands.
  *
- * <p>
- * This class is primarily for internal usage.</p>
  */
 public final class CommandManager {
 
@@ -74,18 +73,13 @@ public final class CommandManager {
     private final PlatformManager platformManager;
     private final Dispatcher dispatcher;
     private final DynamicStreamHandler dynamicHandler = new DynamicStreamHandler();
+    private final DispatcherNode rootDispatcherNode;
 
     /**
      * Create a new instance.
      *
      * @param worldEdit the WorldEdit instance
      */
-    
-    /*This code (not mine) suffers from the calling of ovrerideable methocs from
-    constructors, and passing unfinshed objects as arguments to constructors. 
-    In this case here, NONE of the objects passed to this constructor are fully 
-    constructed, and any use of methods (or fields) objects is invalid.
-    */
     CommandManager(final WorldEdit worldEdit, PlatformManager platformManager) {
         checkNotNull(worldEdit);
         checkNotNull(platformManager);
@@ -108,58 +102,50 @@ public final class CommandManager {
         builder.addInvokeListener(new LegacyCommandsHandler());
         builder.addInvokeListener(new CommandLoggingHandler(worldEdit, commandLog));
 
-        com.sk89q.worldedit.util.command.fluent.DispatcherNode dispatcherNode = new CommandGraph()
+        rootDispatcherNode = new CommandGraph()
                 .builder(builder)
                 .commands();
-        dispatcher = dispatcherNode
-                .registerMethods(new BiomeCommands(worldEdit))
-                .registerMethods(new ChunkCommands(worldEdit))
-                .registerMethods(new ClipboardCommands(worldEdit))
-                .registerMethods(new GeneralCommands(worldEdit))
-                .registerMethods(new GenerationCommands(worldEdit))
-                .registerMethods(new HistoryCommands(worldEdit))
-                .registerMethods(new NavigationCommands(worldEdit))
-                .registerMethods(new RegionCommands(worldEdit))
-                .registerMethods(new ScriptingCommands(worldEdit))
-                .registerMethods(new SelectionCommands(worldEdit))
-                .registerMethods(new SnapshotUtilCommands(worldEdit))
-                .registerMethods(new ToolUtilCommands(worldEdit))
-                .registerMethods(new ToolCommands(worldEdit))
-                .registerMethods(new UtilityCommands(worldEdit))
-                .group("worldedit", "we")
-                .describeAs("WorldEdit commands")
-                .registerMethods(new WorldEditCommands(worldEdit))
-                .parent()
-                .group("schematic", "schem", "/schematic", "/schem")
-                .describeAs("Schematic commands for saving/loading areas")
-                .registerMethods(new SchematicCommands(worldEdit))
-                .parent()
-                .group("snapshot", "snap")
-                .describeAs("Schematic commands for saving/loading areas")
-                .registerMethods(new SnapshotCommands(worldEdit))
-                .parent()
-                .group("brush", "br")
-                .describeAs("Brushing commands")
-                .registerMethods(new BrushCommands(worldEdit))
-                .parent()
-                .group("superpickaxe", "pickaxe", "sp")
-                .describeAs("Super-pickaxe commands")
-                .registerMethods(new SuperPickaxeCommands(worldEdit))
-                .parent()
-                .group("tool")
-                .describeAs("Bind functions to held items")
-                .registerMethods(new ToolCommands(worldEdit))
-                .parent()
-                .graph()
+        dispatcher = rootDispatcherNode
+                        .registerMethods(new BiomeCommands(worldEdit))
+                        .registerMethods(new ChunkCommands(worldEdit))
+                        .registerMethods(new ClipboardCommands(worldEdit))
+                        .registerMethods(new GeneralCommands(worldEdit))
+                        .registerMethods(new GenerationCommands(worldEdit))
+                        .registerMethods(new HistoryCommands(worldEdit))
+                        .registerMethods(new NavigationCommands(worldEdit))
+                        .registerMethods(new RegionCommands(worldEdit))
+                        .registerMethods(new ScriptingCommands(worldEdit))
+                        .registerMethods(new SelectionCommands(worldEdit))
+                        .registerMethods(new SnapshotUtilCommands(worldEdit))
+                        .registerMethods(new ToolUtilCommands(worldEdit))
+                        .registerMethods(new ToolCommands(worldEdit))
+                        .registerMethods(new UtilityCommands(worldEdit))
+                        .group("worldedit", "we")
+                            .describeAs("WorldEdit commands")
+                            .registerMethods(new WorldEditCommands(worldEdit))
+                            .parent()
+                        .group("schematic", "schem", "/schematic", "/schem")
+                            .describeAs("Schematic commands for saving/loading areas")
+                            .registerMethods(new SchematicCommands(worldEdit))
+                            .parent()
+                        .group("snapshot", "snap")
+                            .describeAs("Schematic commands for saving/loading areas")
+                            .registerMethods(new SnapshotCommands(worldEdit))
+                            .parent()
+                        .group("brush", "br")
+                            .describeAs("Brushing commands")
+                            .registerMethods(new BrushCommands(worldEdit))
+                            .parent()
+                        .group("superpickaxe", "pickaxe", "sp")
+                            .describeAs("Super-pickaxe commands")
+                            .registerMethods(new SuperPickaxeCommands(worldEdit))
+                            .parent()
+                        .group("tool")
+                            .describeAs("Bind functions to held items")
+                            .registerMethods(new ToolCommands(worldEdit))
+                            .parent()
+                        .graph()
                 .getDispatcher();
-        try {
-            /*The use of a hardcoded currect directory is unfortunate, but 
-            unavoidable becuase NOTHING is fully constructed yet!*/
-            LocalRegistrar.registerAndReturn(new File("./plugins/WorldEdit"), dispatcherNode); /*Adds commands within jars in WorldEdit dir*/
-
-        } catch (Exception ex) {
-            commandLog.log(Level.SEVERE, ex.getMessage(), ex);
-        }
     }
 
     void register(Platform platform) {
@@ -317,4 +303,29 @@ public final class CommandManager {
         return commandLog;
     }
 
+    /**
+     * Get the root DispatcherNode. The rootDispatcherNode is the DispatcherNode
+     * internal to the CommandGraph created by the CommandManager. This is the
+     * only data structure that external commands can be registered upon. For
+     * example, to register a FancyCommands object's methods as commands, try
+     * something like
+     * <pre>
+     * {@code
+     *        WorldEdit worldEdit = WorldEdit.getInstance();
+     * 
+     *        DispatcherNode rootDispatcherNode = worldEdit.getInstance()
+     *                .getPlatformManager()
+     *                .getCommandManager()
+     *                .getRootDispatcherNode();
+     * 
+     *       rootDispatcherNode .registerMethods(new FancyCommands(worldEdit));
+     * }
+     * </pre>
+     *
+     * @return the root DispatcherNode
+     */  
+    public DispatcherNode getRootDispatcherNode(){
+        return rootDispatcherNode;
+    } 
+    
 }
